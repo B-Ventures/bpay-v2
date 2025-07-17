@@ -16,6 +16,7 @@ export default function PaymentDemo() {
   const [paymentSplits, setPaymentSplits] = useState<any>(null);
   const [generatedBcard, setGeneratedBcard] = useState<any>(null);
   const [paymentResult, setPaymentResult] = useState<any>(null);
+  const [demoMode, setDemoMode] = useState<'success' | 'failure'>('success');
 
   const handleSplitConfigured = (splits: any) => {
     setPaymentSplits(splits);
@@ -29,12 +30,14 @@ export default function PaymentDemo() {
     let progress = 0;
     const totalSteps = splits.length + 1; // Each funding source + final bcard creation
     
-    const updateProgress = (step: number, message: string) => {
+    const updateProgress = (step: number, message: string, error?: string) => {
       progress = (step / totalSteps) * 100;
       setGeneratedBcard(prev => ({
         ...prev,
         progress,
-        currentStep: message
+        currentStep: message,
+        error: error || null,
+        failedStep: error ? step : null
       }));
     };
 
@@ -42,33 +45,68 @@ export default function PaymentDemo() {
     updateProgress(0, "Initializing payment process...");
     
     // Simulate deducting from each funding source
+    let hasError = false;
     splits.forEach((split: any, index: number) => {
       setTimeout(() => {
-        updateProgress(index + 1, `Processing ${split.type} (${split.percentage ? split.percentage + '%' : '$' + split.amount})...`);
+        // Simulate failure scenario for demo purposes
+        if (demoMode === 'failure' && index === 1 && !hasError) {
+          hasError = true;
+          updateProgress(index + 1, `Failed to process ${split.type}`, `Insufficient funds on ${split.name}. Available: $${(Math.random() * 50).toFixed(2)}, Required: $${split.percentage ? ((amount * split.percentage) / 100).toFixed(2) : split.amount}`);
+          
+          // Show retry/cancel options after 2 seconds
+          setTimeout(() => {
+            setGeneratedBcard(prev => ({
+              ...prev,
+              showRetryOptions: true
+            }));
+          }, 2000);
+          return;
+        }
+        
+        if (!hasError) {
+          updateProgress(index + 1, `Processing ${split.type} (${split.percentage ? split.percentage + '%' : '$' + split.amount})...`);
+        }
       }, (index + 1) * 1500);
     });
 
-    // Final step: Create bcard
+    // Final step: Create bcard (only if no errors)
     setTimeout(() => {
-      updateProgress(totalSteps, "Creating your bcard...");
-      
-      // Complete bcard generation
-      setTimeout(() => {
-        const mockBcard = {
-          id: `bcard_${Date.now()}`,
-          number: "4555 1234 5678 9012",
-          expiry: "12/28",
-          cvv: "123",
-          balance: amount,
-          merchant: merchant,
-          status: "active",
-          progress: 100,
-          currentStep: "Complete"
-        };
-        setGeneratedBcard(mockBcard);
-        setCurrentStep('merchant');
-      }, 1000);
+      if (!hasError) {
+        updateProgress(totalSteps, "Creating your bcard...");
+        
+        // Complete bcard generation
+        setTimeout(() => {
+          const mockBcard = {
+            id: `bcard_${Date.now()}`,
+            number: "4555 1234 5678 9012",
+            expiry: "12/28",
+            cvv: "123",
+            balance: amount,
+            merchant: merchant,
+            status: "active",
+            progress: 100,
+            currentStep: "Complete"
+          };
+          setGeneratedBcard(mockBcard);
+          setCurrentStep('merchant');
+        }, 1000);
+      }
     }, splits.length * 1500 + 1000);
+  };
+
+  const retryPayment = () => {
+    // Switch to success mode and retry
+    setDemoMode('success');
+    setGeneratedBcard(null);
+    simulateBcardGeneration(paymentSplits);
+  };
+
+  const cancelPayment = () => {
+    // Reset to checkout
+    setCurrentStep('checkout');
+    setPaymentSplits(null);
+    setGeneratedBcard(null);
+    setPaymentResult(null);
   };
 
   const handleMerchantCheckout = (result: any) => {
@@ -83,6 +121,11 @@ export default function PaymentDemo() {
     setPaymentResult(null);
   };
 
+  const toggleDemoMode = () => {
+    setDemoMode(prev => prev === 'success' ? 'failure' : 'success');
+    resetDemo();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm">
@@ -90,7 +133,14 @@ export default function PaymentDemo() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Store className="text-[hsl(249,83%,65%)] h-8 w-8 mr-2" />
-              <h1 className="text-2xl font-bold text-[hsl(249,83%,65%)]">Payment Demo</h1>
+              <div>
+                <h1 className="text-2xl font-bold text-[hsl(249,83%,65%)]">Payment Demo</h1>
+                <p className="text-sm text-gray-600">
+                  Current Scenario: <span className={`font-semibold ${demoMode === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                    {demoMode === 'success' ? 'Success Flow' : 'Failure Flow'}
+                  </span>
+                </p>
+              </div>
             </div>
             <Link href="/">
               <Button variant="ghost">
@@ -135,6 +185,42 @@ export default function PaymentDemo() {
                     step="0.01"
                   />
                 </div>
+                
+                {/* Demo Mode Selector */}
+                <div className="bg-gray-50 p-4 rounded-lg border">
+                  <Label className="text-sm font-medium mb-2 block">Demo Scenario</Label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="demoMode"
+                        value="success"
+                        checked={demoMode === 'success'}
+                        onChange={(e) => setDemoMode(e.target.value as 'success' | 'failure')}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">Success Flow</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="demoMode"
+                        value="failure"
+                        checked={demoMode === 'failure'}
+                        onChange={(e) => setDemoMode(e.target.value as 'success' | 'failure')}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">Failure Flow</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    {demoMode === 'success' 
+                      ? "Simulates successful payment processing and bcard generation"
+                      : "Simulates funding source failure and error handling"
+                    }
+                  </p>
+                </div>
+                
                 <div className="pt-4">
                   <Button 
                     onClick={() => setCurrentStep('split')}
@@ -243,17 +329,23 @@ export default function PaymentDemo() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold mb-3">Processing Steps:</h4>
                   <div className="space-y-3">
-                    {paymentSplits && paymentSplits.map((split: any, index: number) => (
+                    {paymentSplits && Array.isArray(paymentSplits) && paymentSplits.map((split: any, index: number) => (
                       <div key={index} className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                            (generatedBcard?.progress || 0) > (index + 1) * (100 / (paymentSplits.length + 1))
+                            generatedBcard?.failedStep === index + 1
+                              ? 'bg-red-500 text-white'
+                              : (generatedBcard?.progress || 0) > (index + 1) * (100 / (paymentSplits.length + 1))
                               ? 'bg-green-500 text-white'
                               : (generatedBcard?.progress || 0) >= index * (100 / (paymentSplits.length + 1))
                               ? 'bg-[hsl(249,83%,65%)] text-white animate-pulse'
                               : 'bg-gray-300 text-gray-600'
                           }`}>
-                            {(generatedBcard?.progress || 0) > (index + 1) * (100 / (paymentSplits.length + 1)) ? '✓' : index + 1}
+                            {generatedBcard?.failedStep === index + 1 
+                              ? '✗' 
+                              : (generatedBcard?.progress || 0) > (index + 1) * (100 / (paymentSplits.length + 1)) 
+                              ? '✓' 
+                              : index + 1}
                           </div>
                           <div>
                             <p className="font-medium">{split.name}</p>
@@ -302,39 +394,80 @@ export default function PaymentDemo() {
                   <div className="text-sm">
                     <p className="text-blue-800">
                       <strong>Collected:</strong> ${(() => {
+                        if (!paymentSplits || !Array.isArray(paymentSplits)) return '0.00';
                         const currentProgress = generatedBcard?.progress || 0;
-                        const completedSources = Math.floor((currentProgress / 100) * paymentSplits?.length || 0);
+                        const completedSources = Math.floor((currentProgress / 100) * paymentSplits.length);
                         let collected = 0;
-                        if (paymentSplits) {
-                          for (let i = 0; i < completedSources; i++) {
-                            const split = paymentSplits[i];
-                            collected += split.percentage ? (amount * split.percentage) / 100 : parseFloat(split.amount);
-                          }
+                        for (let i = 0; i < Math.min(completedSources, paymentSplits.length); i++) {
+                          const split = paymentSplits[i];
+                          collected += split.percentage ? (amount * split.percentage) / 100 : parseFloat(split.amount || 0);
                         }
                         return collected.toFixed(2);
                       })()}
                     </p>
                     <p className="text-blue-800">
-                      <strong>Remaining:</strong> ${(amount - parseFloat((() => {
+                      <strong>Remaining:</strong> ${(() => {
+                        if (!paymentSplits || !Array.isArray(paymentSplits)) return amount.toFixed(2);
                         const currentProgress = generatedBcard?.progress || 0;
-                        const completedSources = Math.floor((currentProgress / 100) * paymentSplits?.length || 0);
+                        const completedSources = Math.floor((currentProgress / 100) * paymentSplits.length);
                         let collected = 0;
-                        if (paymentSplits) {
-                          for (let i = 0; i < completedSources; i++) {
-                            const split = paymentSplits[i];
-                            collected += split.percentage ? (amount * split.percentage) / 100 : parseFloat(split.amount);
-                          }
+                        for (let i = 0; i < Math.min(completedSources, paymentSplits.length); i++) {
+                          const split = paymentSplits[i];
+                          collected += split.percentage ? (amount * split.percentage) / 100 : parseFloat(split.amount || 0);
                         }
-                        return collected.toFixed(2);
-                      })())).toFixed(2)}
+                        return (amount - collected).toFixed(2);
+                      })()}
                     </p>
                   </div>
                 </div>
 
+                {/* Error Display and Retry Options */}
+                {generatedBcard?.error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-white font-bold">✗</span>
+                      </div>
+                      <h4 className="font-semibold text-red-900">Payment Processing Failed</h4>
+                    </div>
+                    <p className="text-red-800 text-sm mb-4">{generatedBcard.error}</p>
+                    
+                    {generatedBcard.showRetryOptions && (
+                      <div className="space-y-3">
+                        <div className="flex space-x-3">
+                          <Button 
+                            onClick={retryPayment}
+                            className="flex-1 bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)]"
+                          >
+                            Retry Payment
+                          </Button>
+                          <Button 
+                            onClick={cancelPayment}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Cancel & Reconfigure
+                          </Button>
+                        </div>
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                          <h5 className="font-medium text-yellow-900 mb-1">Possible Solutions:</h5>
+                          <ul className="text-sm text-yellow-800 space-y-1">
+                            <li>• Check if funding source has sufficient balance</li>
+                            <li>• Verify card is not expired or blocked</li>
+                            <li>• Try with a different funding source</li>
+                            <li>• Reduce the amount for this funding source</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="text-center text-sm text-gray-500">
                   <p><strong>Processing for:</strong> {merchant}</p>
                   <p><strong>Total Amount:</strong> ${amount}</p>
-                  <p><strong>Expected Time:</strong> {paymentSplits ? `${paymentSplits.length * 1.5 + 1}` : '3-5'} seconds</p>
+                  <p><strong>Expected Time:</strong> {paymentSplits && Array.isArray(paymentSplits) ? `${paymentSplits.length * 1.5 + 1}` : '3-5'} seconds</p>
+                  <p><strong>Demo Mode:</strong> {demoMode === 'success' ? 'Success Scenario' : 'Failure Scenario'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -480,6 +613,13 @@ export default function PaymentDemo() {
                     className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)]"
                   >
                     Make Another Payment
+                  </Button>
+                  <Button 
+                    onClick={toggleDemoMode}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Try {demoMode === 'success' ? 'Failure' : 'Success'} Scenario
                   </Button>
                   <Link href="/">
                     <Button variant="outline" className="w-full">
