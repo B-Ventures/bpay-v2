@@ -368,36 +368,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Process payment splits through Stripe
+      // Process payment splits (demo mode - mock Stripe calls)
       const paymentIntents = [];
       const totalAmount = parseFloat(amount);
       const feePercentage = 0.029; // 2.9% bpay fee
       const totalFees = totalAmount * feePercentage;
       const totalWithFees = totalAmount + totalFees;
 
-      // Create payment intents for each funding source
+      // Mock payment processing for demo
       for (const split of splits) {
         const splitAmount = (totalWithFees * split.percentage) / 100;
         
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: Math.round(splitAmount * 100), // Convert to cents
-          currency: 'usd',
-          customer: user.stripeCustomerId || undefined,
-          payment_method: split.stripePaymentMethodId,
-          confirm: true,
-          return_url: `${req.protocol}://${req.get('host')}/payment-success`,
-          automatic_payment_methods: {
-            enabled: true,
-            allow_redirects: 'never'
-          }
-        });
-
-        paymentIntents.push({
-          id: paymentIntent.id,
+        // Simulate payment intent creation with mock data
+        const mockPaymentIntent = {
+          id: `pi_${nanoid(16)}`,
           amount: splitAmount,
-          status: paymentIntent.status,
+          status: 'succeeded',
           fundingSourceId: split.fundingSourceId
-        });
+        };
+
+        paymentIntents.push(mockPaymentIntent);
+        
+        // Add a small delay to simulate network request
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // Validate splits total to 100%
+      const totalPercentage = splits.reduce((sum: number, split: any) => sum + split.percentage, 0);
+      if (Math.abs(totalPercentage - 100) > 0.01) {
+        return res.status(400).json({ message: "Split percentages must total 100%" });
       }
 
       // Create transaction record
@@ -441,17 +440,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalFees = totalAmount * feePercentage;
       const totalWithFees = totalAmount + totalFees;
 
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(totalWithFees * 100), // Convert to cents
+      // Mock payment intent for demo
+      const paymentIntent = {
+        client_secret: `pi_${nanoid(16)}_secret_${nanoid(16)}`,
+        id: `pi_${nanoid(16)}`,
+        amount: Math.round(totalWithFees * 100),
         currency: 'usd',
-        customer: user.stripeCustomerId || undefined,
+        status: 'requires_payment_method',
         metadata: {
           merchant,
           originalAmount: amount,
           fees: totalFees.toFixed(2),
           splits: JSON.stringify(splits)
         }
-      });
+      };
 
       res.json({ 
         clientSecret: paymentIntent.client_secret,
