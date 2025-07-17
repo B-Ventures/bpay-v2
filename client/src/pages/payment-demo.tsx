@@ -21,20 +21,54 @@ export default function PaymentDemo() {
     setPaymentSplits(splits);
     setCurrentStep('bcard');
     
-    // Simulate bcard generation
+    // Simulate realistic bcard generation process
+    simulateBcardGeneration(splits);
+  };
+
+  const simulateBcardGeneration = (splits: any) => {
+    let progress = 0;
+    const totalSteps = splits.length + 1; // Each funding source + final bcard creation
+    
+    const updateProgress = (step: number, message: string) => {
+      progress = (step / totalSteps) * 100;
+      setGeneratedBcard(prev => ({
+        ...prev,
+        progress,
+        currentStep: message
+      }));
+    };
+
+    // Step 1: Initialize
+    updateProgress(0, "Initializing payment process...");
+    
+    // Simulate deducting from each funding source
+    splits.forEach((split: any, index: number) => {
+      setTimeout(() => {
+        updateProgress(index + 1, `Processing ${split.type} (${split.percentage ? split.percentage + '%' : '$' + split.amount})...`);
+      }, (index + 1) * 1500);
+    });
+
+    // Final step: Create bcard
     setTimeout(() => {
-      const mockBcard = {
-        id: `bcard_${Date.now()}`,
-        number: "4555 1234 5678 9012",
-        expiry: "12/28",
-        cvv: "123",
-        balance: amount,
-        merchant: merchant,
-        status: "active"
-      };
-      setGeneratedBcard(mockBcard);
-      setCurrentStep('merchant');
-    }, 2000);
+      updateProgress(totalSteps, "Creating your bcard...");
+      
+      // Complete bcard generation
+      setTimeout(() => {
+        const mockBcard = {
+          id: `bcard_${Date.now()}`,
+          number: "4555 1234 5678 9012",
+          expiry: "12/28",
+          cvv: "123",
+          balance: amount,
+          merchant: merchant,
+          status: "active",
+          progress: 100,
+          currentStep: "Complete"
+        };
+        setGeneratedBcard(mockBcard);
+        setCurrentStep('merchant');
+      }, 1000);
+    }, splits.length * 1500 + 1000);
   };
 
   const handleMerchantCheckout = (result: any) => {
@@ -186,20 +220,121 @@ export default function PaymentDemo() {
                   Generating Your bcard
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-center space-y-6">
-                <div className="w-16 h-16 bg-[hsl(249,83%,65%)] rounded-full flex items-center justify-center mx-auto">
-                  <CreditCard className="h-8 w-8 text-white animate-pulse" />
+              <CardContent className="space-y-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[hsl(249,83%,65%)] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CreditCard className="h-8 w-8 text-white animate-pulse" />
+                  </div>
+                  <h3 className="text-lg font-semibold">Processing Your Payment Split</h3>
+                  <p className="text-gray-600">
+                    {generatedBcard?.currentStep || "Preparing to charge your funding sources..."}
+                  </p>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Processing Your Split</h3>
-                  <p className="text-gray-600">Charging your funding sources and creating a secure bcard...</p>
+
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-[hsl(249,83%,65%)] h-3 rounded-full transition-all duration-500 ease-out" 
+                    style={{ width: `${generatedBcard?.progress || 0}%` }}
+                  ></div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-[hsl(249,83%,65%)] h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
+
+                {/* Payment Split Details */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3">Processing Steps:</h4>
+                  <div className="space-y-3">
+                    {paymentSplits && paymentSplits.map((split: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            (generatedBcard?.progress || 0) > (index + 1) * (100 / (paymentSplits.length + 1))
+                              ? 'bg-green-500 text-white'
+                              : (generatedBcard?.progress || 0) >= index * (100 / (paymentSplits.length + 1))
+                              ? 'bg-[hsl(249,83%,65%)] text-white animate-pulse'
+                              : 'bg-gray-300 text-gray-600'
+                          }`}>
+                            {(generatedBcard?.progress || 0) > (index + 1) * (100 / (paymentSplits.length + 1)) ? '✓' : index + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium">{split.name}</p>
+                            <p className="text-sm text-gray-600">{split.type}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">
+                            {split.percentage ? `${split.percentage}%` : `$${split.amount}`}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            ${split.percentage ? ((amount * split.percentage) / 100).toFixed(2) : split.amount}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Final bcard creation step */}
+                    <div className="flex items-center justify-between border-t pt-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          (generatedBcard?.progress || 0) === 100
+                            ? 'bg-green-500 text-white'
+                            : (generatedBcard?.progress || 0) > 80
+                            ? 'bg-[hsl(249,83%,65%)] text-white animate-pulse'
+                            : 'bg-gray-300 text-gray-600'
+                        }`}>
+                          {(generatedBcard?.progress || 0) === 100 ? '✓' : '🔄'}
+                        </div>
+                        <div>
+                          <p className="font-medium">Create bcard</p>
+                          <p className="text-sm text-gray-600">Loading ${amount} onto new card</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-[hsl(249,83%,65%)]">${amount}</p>
+                        <p className="text-sm text-gray-600">Full balance</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-500">
-                  <p>Amount: ${amount}</p>
-                  <p>Merchant: {merchant}</p>
+
+                {/* Real-time Balance Collection */}
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-2">💰 Collecting Funds</h4>
+                  <div className="text-sm">
+                    <p className="text-blue-800">
+                      <strong>Collected:</strong> ${(() => {
+                        const currentProgress = generatedBcard?.progress || 0;
+                        const completedSources = Math.floor((currentProgress / 100) * paymentSplits?.length || 0);
+                        let collected = 0;
+                        if (paymentSplits) {
+                          for (let i = 0; i < completedSources; i++) {
+                            const split = paymentSplits[i];
+                            collected += split.percentage ? (amount * split.percentage) / 100 : parseFloat(split.amount);
+                          }
+                        }
+                        return collected.toFixed(2);
+                      })()}
+                    </p>
+                    <p className="text-blue-800">
+                      <strong>Remaining:</strong> ${(amount - parseFloat((() => {
+                        const currentProgress = generatedBcard?.progress || 0;
+                        const completedSources = Math.floor((currentProgress / 100) * paymentSplits?.length || 0);
+                        let collected = 0;
+                        if (paymentSplits) {
+                          for (let i = 0; i < completedSources; i++) {
+                            const split = paymentSplits[i];
+                            collected += split.percentage ? (amount * split.percentage) / 100 : parseFloat(split.amount);
+                          }
+                        }
+                        return collected.toFixed(2);
+                      })())).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-center text-sm text-gray-500">
+                  <p><strong>Processing for:</strong> {merchant}</p>
+                  <p><strong>Total Amount:</strong> ${amount}</p>
+                  <p><strong>Expected Time:</strong> {paymentSplits ? `${paymentSplits.length * 1.5 + 1}` : '3-5'} seconds</p>
                 </div>
               </CardContent>
             </Card>
