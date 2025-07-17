@@ -6,6 +6,7 @@ import { insertFundingSourceSchema, insertVirtualCardSchema, insertTransactionSc
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import Stripe from "stripe";
+import { stripeIssuingService } from "./services/stripe-issuing";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');

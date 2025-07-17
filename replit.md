@@ -7,6 +7,8 @@ bpay is a full-stack payment splitting platform that allows users to combine mul
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Card terminology: Use "bcard" instead of "virtual cards" in user interfaces and customer communications.
+Payment processing: Implement Stripe Issuing for card generation in production mode with proper testing/sandbox configuration.
 
 ## System Architecture
 

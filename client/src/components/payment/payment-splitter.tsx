@@ -123,12 +123,12 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
   };
 
   const processPayment = () => {
-    const selectedVirtualCard = virtualCards[0]; // Use first available virtual card
+    const selectedBcard = virtualCards[0]; // Use first available bcard
     
-    if (!selectedVirtualCard) {
+    if (!selectedBcard) {
       toast({
-        title: "No Virtual Card",
-        description: "Please create a virtual card first",
+        title: "No bcard Available",
+        description: "Please create a bcard first",
         variant: "destructive",
       });
       return;
@@ -150,7 +150,7 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
     processingMutation.mutate({
       amount: amount.toString(),
       merchant,
-      virtualCardId: selectedVirtualCard.id,
+      virtualCardId: selectedBcard.id,
       splits: validSplits,
     });
   };

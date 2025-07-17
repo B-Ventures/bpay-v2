@@ -42,7 +42,7 @@ export default function Overview() {
                 <CreditCard className="text-[hsl(249,83%,65%)] h-6 w-6" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Cards</p>
+                <p className="text-sm font-medium text-gray-600">Active bcards</p>
                 <p className="text-2xl font-bold text-gray-900">{virtualCards.length}</p>
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function Overview() {
               >
                 <div className="flex items-center">
                   <Plus className="text-[hsl(249,83%,65%)] h-5 w-5 mr-3" />
-                  <span className="font-medium">Create Virtual Card</span>
+                  <span className="font-medium">Create bcard</span>
                 </div>
                 <span className="text-[hsl(249,83%,65%)]">→</span>
               </Button>
