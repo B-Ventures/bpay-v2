@@ -16,6 +16,9 @@ function Router() {
 
   return (
     <Switch>
+      {/* Public routes */}
+      <Route path="/payment-demo" component={PaymentDemo} />
+      
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
@@ -23,7 +26,6 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/merchant-portal" component={MerchantPortal} />
           <Route path="/admin-panel" component={AdminPanel} />
-          <Route path="/payment-demo" component={PaymentDemo} />
         </>
       )}
       <Route component={NotFound} />

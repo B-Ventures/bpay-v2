@@ -363,10 +363,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { amount, merchant, virtualCardId, splits } = req.body;
+      
+      // Debug logging
+      console.log("Process payment request:", {
+        amount,
+        merchant,
+        virtualCardId,
+        splits: splits,
+        splitsType: typeof splits,
+        splitsIsArray: Array.isArray(splits)
+      });
+      
       const user = await storage.getUser(userId);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // Validate that splits is an array
+      if (!Array.isArray(splits)) {
+        return res.status(400).json({ 
+          message: "Invalid splits data - must be an array",
+          receivedType: typeof splits,
+          receivedData: splits 
+        });
       }
 
       // Process payment splits (demo mode - mock Stripe calls)

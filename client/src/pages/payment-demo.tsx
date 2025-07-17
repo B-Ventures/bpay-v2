@@ -18,15 +18,34 @@ export default function PaymentDemo() {
   const [paymentResult, setPaymentResult] = useState<any>(null);
   const [demoMode, setDemoMode] = useState<'success' | 'failure'>('success');
 
-  const handleSplitConfigured = (splits: any) => {
-    setPaymentSplits(splits);
-    setCurrentStep('bcard');
-    
-    // Simulate realistic bcard generation process
-    simulateBcardGeneration(splits);
+  const handleSplitConfigured = (result: any) => {
+    console.log("Payment result received:", result);
+    // If result has splits, it means we got the splits configuration
+    if (result && Array.isArray(result)) {
+      // This is the splits configuration, not a payment result
+      setPaymentSplits(result);
+      setCurrentStep('bcard');
+      simulateBcardGeneration(result);
+    } else {
+      // This is a payment result from the API
+      setPaymentSplits(result.splits || []);
+      setCurrentStep('bcard');
+      simulateBcardGeneration(result.splits || []);
+    }
   };
 
   const simulateBcardGeneration = (splits: any) => {
+    // Ensure splits is an array
+    if (!Array.isArray(splits)) {
+      console.error("Splits is not an array:", splits);
+      setGeneratedBcard({
+        error: "Invalid splits configuration",
+        showRetryOptions: true,
+        failedStep: 1
+      });
+      return;
+    }
+
     let progress = 0;
     const totalSteps = splits.length + 1; // Each funding source + final bcard creation
     
