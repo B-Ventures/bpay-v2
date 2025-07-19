@@ -150,24 +150,25 @@ export default function PaymentDemo() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 sm:py-6">
             <div className="flex items-center">
-              <Store className="text-[hsl(249,83%,65%)] h-8 w-8 mr-2" />
+              <Store className="text-[hsl(249,83%,65%)] h-6 w-6 sm:h-8 sm:w-8 mr-2" />
               <div>
-                <h1 className="text-2xl font-bold text-[hsl(249,83%,65%)]">Payment Demo</h1>
-                <p className="text-sm text-gray-600">
+                <h1 className="text-xl sm:text-2xl font-bold text-[hsl(249,83%,65%)]">Payment Demo</h1>
+                <p className="text-xs sm:text-sm text-gray-600">
                   Current Scenario: <span className={`font-semibold ${demoMode === 'success' ? 'text-green-600' : 'text-red-600'}`}>
                     {demoMode === 'success' ? 'Success Flow' : 'Failure Flow'}
                   </span>
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <DemoModeToggle />
               <Link href="/">
-                <Button variant="ghost">
+                <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home
+                  <span className="hidden sm:inline">Back to Home</span>
+                  <span className="sm:hidden">Back</span>
                 </Button>
               </Link>
             </div>
