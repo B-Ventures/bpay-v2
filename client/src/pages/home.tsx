@@ -43,26 +43,25 @@ export default function Home() {
       {/* Dashboard Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4 sm:py-6">
+          <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <CreditCard className="text-[hsl(249,83%,65%)] h-6 w-6 sm:h-8 sm:w-8 mr-2" />
-              <h1 className="text-xl sm:text-2xl font-bold text-[hsl(249,83%,65%)]">bpay</h1>
+              <CreditCard className="text-[hsl(249,83%,65%)] h-8 w-8 mr-2" />
+              <h1 className="text-2xl font-bold text-[hsl(249,83%,65%)]">bpay</h1>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <DemoModeToggle />
-              <Button variant="ghost" size="sm" className="hidden sm:flex">
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm">
                 <Bell className="h-5 w-5" />
               </Button>
               <div className="flex items-center space-x-2">
                 <img 
                   src={user?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
                   alt="Profile" 
-                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover"
                 />
-                <span className="text-xs sm:text-sm font-medium text-gray-700 hidden sm:block">
+                <span className="text-sm font-medium text-gray-700">
                   {user?.firstName} {user?.lastName}
                 </span>
-                <ChevronDown className="h-4 w-4 text-gray-400 hidden sm:block" />
+                <ChevronDown className="h-4 w-4 text-gray-400" />
               </div>
             </div>
           </div>
@@ -72,21 +71,24 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Navigation */}
         <div className="mb-8">
-          <nav className="flex space-x-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`border-b-2 pb-2 px-1 text-sm font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? "border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)]"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
+          <div className="flex justify-between items-center">
+            <nav className="flex space-x-8">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`border-b-2 pb-2 px-1 text-sm font-medium transition-colors ${
+                    activeTab === tab.id
+                      ? "border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)]"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+            <DemoModeToggle />
+          </div>
         </div>
 
         {/* Tab Content */}

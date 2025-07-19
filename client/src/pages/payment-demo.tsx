@@ -163,7 +163,6 @@ export default function PaymentDemo() {
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <DemoModeToggle />
               <Link href="/">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -177,6 +176,10 @@ export default function PaymentDemo() {
       </div>
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Demo Mode Toggle */}
+        <div className="flex justify-end mb-6">
+          <DemoModeToggle />
+        </div>
         {/* Step 1: Checkout */}
         {currentStep === 'checkout' && (
           <div className="grid md:grid-cols-2 gap-8">
