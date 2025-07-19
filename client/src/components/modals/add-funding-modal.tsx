@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
 
 interface AddFundingModalProps {
   isOpen: boolean;
@@ -55,6 +56,20 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
 
   const currentCardType = getCardType(watch("cardNumber") || "");
   const cvvLength = currentCardType === 'amex' ? 4 : 3;
+
+  // Get card logo component
+  const getCardLogo = (cardType: string) => {
+    switch (cardType) {
+      case 'visa':
+        return <SiVisa className="w-8 h-5 text-blue-600" />;
+      case 'mastercard':
+        return <SiMastercard className="w-8 h-5 text-red-500" />;
+      case 'amex':
+        return <SiAmericanexpress className="w-8 h-5 text-blue-500" />;
+      default:
+        return null;
+    }
+  };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCardNumber(e.target.value);
@@ -162,8 +177,8 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
                 className="mt-1 pr-16"
               />
               {currentCardType !== 'unknown' && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                  {currentCardType.toUpperCase()}
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white p-1 rounded border shadow-sm">
+                  {getCardLogo(currentCardType)}
                 </div>
               )}
             </div>

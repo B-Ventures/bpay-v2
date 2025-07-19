@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import AddFundingModal from "@/components/modals/add-funding-modal";
+import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
 
 export default function FundingSources() {
   const { user } = useAuth();
@@ -26,6 +27,20 @@ export default function FundingSources() {
         return 'from-green-600 to-teal-600';
       default:
         return 'from-gray-600 to-gray-800';
+    }
+  };
+
+  // Get card logo component
+  const getCardLogo = (brand: string) => {
+    switch (brand?.toLowerCase()) {
+      case 'visa':
+        return <SiVisa className="w-8 h-5 text-white" />;
+      case 'mastercard':
+        return <SiMastercard className="w-8 h-5 text-white" />;
+      case 'amex':
+        return <SiAmericanexpress className="w-8 h-5 text-white" />;
+      default:
+        return <span className="text-white text-xs font-bold">CARD</span>;
     }
   };
 
@@ -66,9 +81,7 @@ export default function FundingSources() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className={`w-12 h-8 bg-gradient-to-r ${getBrandColor(source.brand)} rounded flex items-center justify-center mr-4`}>
-                        <span className="text-white text-xs font-bold">
-                          {source.brand?.toUpperCase() || 'CARD'}
-                        </span>
+                        {getCardLogo(source.brand)}
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{source.name}</p>

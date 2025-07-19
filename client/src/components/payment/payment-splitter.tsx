@@ -9,6 +9,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
 
 interface PaymentSplitterProps {
   amount: number;
@@ -66,6 +67,20 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
   // Use demo data when not authenticated, real data when authenticated
   const activeFundingSources = user ? fundingSources : demoFundingSources;
   const activeVirtualCards = user ? virtualCards : demoVirtualCards;
+
+  // Get card logo component
+  const getCardLogo = (brand: string) => {
+    switch (brand?.toLowerCase()) {
+      case 'visa':
+        return <SiVisa className="w-8 h-5 text-white" />;
+      case 'mastercard':
+        return <SiMastercard className="w-8 h-5 text-white" />;
+      case 'amex':
+        return <SiAmericanexpress className="w-8 h-5 text-white" />;
+      default:
+        return <span className="text-white text-xs font-bold">CARD</span>;
+    }
+  };
 
   const processingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -249,9 +264,7 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
             {splits.map((split, index) => (
               <div key={split.fundingSourceId} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                 <div className={`w-12 h-8 bg-gradient-to-r ${getBrandColor(split.brand)} rounded flex items-center justify-center`}>
-                  <span className="text-white text-xs font-bold">
-                    {split.brand?.toUpperCase() || 'CARD'}
-                  </span>
+                  {getCardLogo(split.brand)}
                 </div>
                 <div className="flex-1">
                   <p className="font-medium">{split.name}</p>
