@@ -177,7 +177,7 @@ export default function PaymentDemo() {
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Demo Mode Toggle */}
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-center sm:justify-end mb-6">
           <DemoModeToggle />
         </div>
         {/* Step 1: Checkout */}

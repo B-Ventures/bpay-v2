@@ -10,14 +10,14 @@ export default function DemoModeToggle() {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 rounded-md px-2 py-1 border text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <div className="flex items-center space-x-1.5 bg-gray-50 dark:bg-gray-800 rounded-md px-2 py-1 border text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <Switch
               id="demo-mode"
               checked={isDemoMode}
               onCheckedChange={toggleDemoMode}
               className="scale-75"
             />
-            <Label htmlFor="demo-mode" className="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+            <Label htmlFor="demo-mode" className="font-medium text-gray-700 dark:text-gray-300 cursor-pointer text-xs">
               Demo
             </Label>
           </div>
