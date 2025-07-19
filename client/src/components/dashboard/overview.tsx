@@ -87,16 +87,18 @@ export default function Overview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <Button 
-                className="w-full flex items-center justify-between p-4 bg-[hsl(249,83%,65%)]/5 hover:bg-[hsl(249,83%,65%)]/10 h-auto"
-                variant="ghost"
-              >
-                <div className="flex items-center">
-                  <Plus className="text-[hsl(249,83%,65%)] h-5 w-5 mr-3" />
-                  <span className="font-medium">Create bcard</span>
-                </div>
-                <span className="text-[hsl(249,83%,65%)]">→</span>
-              </Button>
+              <Link href="/payment-demo">
+                <Button 
+                  className="w-full flex items-center justify-between p-4 bg-[hsl(249,83%,65%)]/5 hover:bg-[hsl(249,83%,65%)]/10 h-auto"
+                  variant="ghost"
+                >
+                  <div className="flex items-center">
+                    <Plus className="text-[hsl(249,83%,65%)] h-5 w-5 mr-3" />
+                    <span className="font-medium">Create bcard</span>
+                  </div>
+                  <span className="text-[hsl(249,83%,65%)]">→</span>
+                </Button>
+              </Link>
               <Button 
                 onClick={() => setShowAddModal(true)}
                 className="w-full flex items-center justify-between p-4 bg-[hsl(258,70%,68%)]/5 hover:bg-[hsl(258,70%,68%)]/10 h-auto"
