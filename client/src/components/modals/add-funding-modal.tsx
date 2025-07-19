@@ -55,8 +55,8 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
   };
 
   const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numeric characters and limit to 4 digits
-    const numericValue = e.target.value.replace(/\D/g, '').slice(0, 4);
+    // Only allow numeric characters and limit to 3 digits (4 for Amex)
+    const numericValue = e.target.value.replace(/\D/g, '').slice(0, 3);
     setValue("cvv", numericValue);
   };
 
@@ -158,7 +158,7 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
                 placeholder="123"
                 value={watch("cvv") || ""}
                 onChange={handleCvvChange}
-                maxLength={4}
+                maxLength={3}
                 className="mt-1"
               />
             </div>
