@@ -22,6 +22,37 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
   const [splits, setSplits] = useState<any[]>([]);
   const [splitMode, setSplitMode] = useState<'percentage' | 'fixed'>('percentage');
 
+  // Demo mode funding sources when not authenticated
+  const demoFundingSources = [
+    {
+      id: 1,
+      name: "Chase Freedom",
+      type: "credit_card",
+      last4: "1234",
+      brand: "visa",
+      defaultSplitPercentage: 60,
+      stripePaymentMethodId: "pm_1U3gVeQWS6DLmVIA"
+    },
+    {
+      id: 2,
+      name: "Bank of America",
+      type: "credit_card", 
+      last4: "5678",
+      brand: "mastercard",
+      defaultSplitPercentage: 40,
+      stripePaymentMethodId: "pm_DtorEf1PNjZ2DmZ9"
+    }
+  ];
+
+  const demoVirtualCards = [
+    {
+      id: 1,
+      name: "bpay Virtual Card",
+      balance: "1000.00",
+      status: "active"
+    }
+  ];
+
   const { data: fundingSources = [] } = useQuery({
     queryKey: ["/api/funding-sources"],
     enabled: !!user,
@@ -31,6 +62,10 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
     queryKey: ["/api/virtual-cards"],
     enabled: !!user,
   });
+
+  // Use demo data when not authenticated, real data when authenticated
+  const activeFundingSources = user ? fundingSources : demoFundingSources;
+  const activeVirtualCards = user ? virtualCards : demoVirtualCards;
 
   const processingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -54,9 +89,9 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
   });
 
   useEffect(() => {
-    if (fundingSources.length > 0 && splits.length === 0) {
+    if (activeFundingSources.length > 0 && splits.length === 0) {
       // Initialize with default splits
-      const defaultSplits = fundingSources.map((source: any) => ({
+      const defaultSplits = activeFundingSources.map((source: any) => ({
         fundingSourceId: source.id,
         stripePaymentMethodId: source.stripePaymentMethodId,
         percentage: parseFloat(source.defaultSplitPercentage) || 0,
@@ -67,7 +102,7 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
       }));
       setSplits(defaultSplits);
     }
-  }, [fundingSources]);
+  }, [activeFundingSources]);
 
   const updateSplit = (index: number, field: string, value: number) => {
     const newSplits = [...splits];
@@ -76,8 +111,8 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
   };
 
   const addSplit = () => {
-    if (fundingSources.length > splits.length) {
-      const availableSources = fundingSources.filter(
+    if (activeFundingSources.length > splits.length) {
+      const availableSources = activeFundingSources.filter(
         (source: any) => !splits.some(split => split.fundingSourceId === source.id)
       );
       
@@ -123,7 +158,7 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
   };
 
   const processPayment = () => {
-    const selectedBcard = virtualCards[0]; // Use first available bcard
+    const selectedBcard = activeVirtualCards[0]; // Use first available bcard
     
     if (!selectedBcard) {
       toast({
@@ -262,7 +297,7 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
               </div>
             ))}
             
-            {fundingSources.length > splits.length && (
+            {activeFundingSources.length > splits.length && (
               <Button
                 variant="outline"
                 onClick={addSplit}

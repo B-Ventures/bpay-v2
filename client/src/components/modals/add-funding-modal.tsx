@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AddFundingModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface AddFundingModalProps {
 
 export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { register, handleSubmit, setValue, watch, reset } = useForm();
 
@@ -44,6 +46,17 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
   });
 
   const onSubmit = (data: any) => {
+    // For demo mode (no user), just show success message without API call
+    if (!user) {
+      toast({
+        title: "Demo Mode",
+        description: "In demo mode, funding sources are simulated. Your card would be added in a real account.",
+      });
+      reset();
+      onClose();
+      return;
+    }
+
     // Extract card details and create funding source
     const cardNumber = data.cardNumber.replace(/\s/g, '');
     const [expiryMonth, expiryYear] = data.expiryDate.split('/');
