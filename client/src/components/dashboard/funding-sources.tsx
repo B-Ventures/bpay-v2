@@ -5,17 +5,53 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/components/providers/demo-mode-provider";
 import AddFundingModal from "@/components/modals/add-funding-modal";
 import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
 
 export default function FundingSources() {
   const { user } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const { data: fundingSources = [] } = useQuery({
+  // Demo funding sources
+  const demoFundingSources = [
+    {
+      id: 1,
+      name: "Chase Freedom",
+      type: "credit_card",
+      last4: "1234",
+      brand: "visa",
+      defaultSplitPercentage: 60,
+      isActive: true,
+    },
+    {
+      id: 2,
+      name: "Bank of America",
+      type: "credit_card", 
+      last4: "5678",
+      brand: "mastercard",
+      defaultSplitPercentage: 40,
+      isActive: true,
+    },
+    {
+      id: 3,
+      name: "American Express Gold",
+      type: "credit_card",
+      last4: "0005",
+      brand: "amex",
+      defaultSplitPercentage: 30,
+      isActive: true,
+    }
+  ];
+
+  const { data: realFundingSources = [] } = useQuery({
     queryKey: ["/api/funding-sources"],
-    enabled: !!user,
+    enabled: !!user && !isDemoMode,
   });
+
+  // Use demo data when in demo mode, real data when in normal mode (and authenticated)
+  const fundingSources = isDemoMode ? demoFundingSources : (user ? realFundingSources : []);
 
   const getBrandColor = (brand: string) => {
     switch (brand?.toLowerCase()) {

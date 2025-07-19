@@ -7,6 +7,7 @@ import FundingSources from "@/components/dashboard/funding-sources";
 import VirtualCards from "@/components/dashboard/virtual-cards";
 import Transactions from "@/components/dashboard/transactions";
 import Settings from "@/components/dashboard/settings";
+import DemoModeToggle from "@/components/ui/demo-mode-toggle";
 
 export default function Home() {
   const { user } = useAuth();
@@ -48,6 +49,7 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-[hsl(249,83%,65%)]">bpay</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <DemoModeToggle />
               <Button variant="ghost" size="sm">
                 <Bell className="h-5 w-5" />
               </Button>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentSplitter from "@/components/payment/payment-splitter";
+import DemoModeToggle from "@/components/ui/demo-mode-toggle";
 
 type PaymentStep = 'checkout' | 'split' | 'bcard' | 'merchant' | 'complete';
 
@@ -161,12 +162,15 @@ export default function PaymentDemo() {
                 </p>
               </div>
             </div>
-            <Link href="/">
-              <Button variant="ghost">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
+            <div className="flex items-center space-x-4">
+              <DemoModeToggle />
+              <Link href="/">
+                <Button variant="ghost">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

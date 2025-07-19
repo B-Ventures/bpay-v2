@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/components/providers/demo-mode-provider";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
@@ -19,6 +20,7 @@ interface PaymentSplitterProps {
 
 export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: PaymentSplitterProps) {
   const { user } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const { toast } = useToast();
   const [splits, setSplits] = useState<any[]>([]);
   const [splitMode, setSplitMode] = useState<'percentage' | 'fixed'>('percentage');
@@ -64,9 +66,9 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
     enabled: !!user,
   });
 
-  // Use demo data when not authenticated, real data when authenticated
-  const activeFundingSources = user ? fundingSources : demoFundingSources;
-  const activeVirtualCards = user ? virtualCards : demoVirtualCards;
+  // Use demo data when in demo mode, real data when in normal mode (and authenticated)
+  const activeFundingSources = isDemoMode ? demoFundingSources : (user ? fundingSources : []);
+  const activeVirtualCards = isDemoMode ? demoVirtualCards : (user ? virtualCards : []);
 
   // Get card logo component
   const getCardLogo = (brand: string) => {
