@@ -1,18 +1,72 @@
-import { Store, FileText } from "lucide-react";
+import { Store, FileText, Calendar, CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/components/providers/demo-mode-provider";
 
 export default function Transactions() {
   const { user } = useAuth();
+  const { isDemoMode } = useDemoMode();
 
-  const { data: transactions = [] } = useQuery({
+  // Demo transactions data
+  const demoTransactions = [
+    {
+      id: 1,
+      createdAt: "2025-01-20T12:00:00Z",
+      merchant: "Demo Store",
+      amount: "100.00",
+      status: "completed",
+      virtualCardName: "bpay Card #1",
+      description: "Online purchase"
+    },
+    {
+      id: 2,
+      createdAt: "2025-01-19T15:30:00Z",
+      merchant: "Demo Store",
+      amount: "150.00",
+      status: "completed",
+      virtualCardName: "bpay Card #1",
+      description: "Subscription payment"
+    },
+    {
+      id: 3,
+      createdAt: "2025-01-18T09:15:00Z",
+      merchant: "Demo Store",
+      amount: "150.00",
+      status: "completed",
+      virtualCardName: "bpay Card #2",
+      description: "Grocery shopping"
+    },
+    {
+      id: 4,
+      createdAt: "2025-01-18T14:45:00Z",
+      merchant: "Demo Store",
+      amount: "100.00",
+      status: "completed",
+      virtualCardName: "bpay Card #1",
+      description: "Gas station"
+    },
+    {
+      id: 5,
+      createdAt: "2025-01-18T18:20:00Z",
+      merchant: "Demo Store",
+      amount: "150.00",
+      status: "completed",
+      virtualCardName: "bpay Card #2",
+      description: "Restaurant"
+    }
+  ];
+
+  const { data: realTransactions = [] } = useQuery({
     queryKey: ["/api/transactions"],
-    enabled: !!user,
+    enabled: !!user && !isDemoMode,
   });
+
+  // Use demo data when in demo mode, real data when in normal mode (and authenticated)
+  const transactions = isDemoMode ? demoTransactions : (user ? realTransactions : []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -31,11 +85,14 @@ export default function Transactions() {
     <div>
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Transaction History</CardTitle>
-            <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle className="flex items-center">
+              <CreditCard className="h-5 w-5 mr-2 text-[hsl(249,83%,65%)]" />
+              Transaction History
+            </CardTitle>
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
               <Select defaultValue="all">
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -45,7 +102,7 @@ export default function Transactions() {
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <FileText className="h-4 w-4 mr-2" />
                 Export
               </Button>
@@ -62,48 +119,57 @@ export default function Transactions() {
               <p className="text-sm">Your transaction history will appear here</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {transactions.map((transaction: any) => (
-                    <tr key={transaction.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(transaction.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                            <Store className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <span className="text-sm font-medium text-gray-900">{transaction.merchant}</span>
+            <div className="space-y-4">
+              {transactions.map((transaction: any) => (
+                <Card key={transaction.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Store className="h-5 w-5 text-gray-400" />
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${parseFloat(transaction.amount).toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <Button variant="ghost" size="sm" className="text-[hsl(249,83%,65%)] hover:text-[hsl(249,83%,60%)]">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                              {transaction.merchant}
+                            </h3>
+                            <Badge className={getStatusColor(transaction.status)}>
+                              {transaction.status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-500 space-x-4">
+                            <div className="flex items-center">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {new Date(transaction.createdAt).toLocaleDateString()}
+                            </div>
+                            {transaction.virtualCardName && (
+                              <div className="flex items-center">
+                                <CreditCard className="h-3 w-3 mr-1" />
+                                {transaction.virtualCardName}
+                              </div>
+                            )}
+                          </div>
+                          {transaction.description && (
+                            <p className="text-xs text-gray-500 mt-1">{transaction.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end sm:flex-col sm:items-end gap-2">
+                        <div className="text-lg font-semibold text-gray-900">
+                          ${parseFloat(transaction.amount).toFixed(2)}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-[hsl(249,83%,65%)] hover:text-[hsl(249,83%,60%)] p-2"
+                        >
                           View
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </CardContent>
