@@ -22,6 +22,44 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
   const queryClient = useQueryClient();
   const { register, handleSubmit, setValue, watch, reset } = useForm();
 
+  // Format card number with spaces (4-4-4-4 pattern)
+  const formatCardNumber = (value: string) => {
+    // Remove all non-numeric characters
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Add spaces every 4 digits
+    return numericValue.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+  };
+
+  // Format expiry date input as MM/YY
+  const formatExpiryDate = (value: string) => {
+    // Remove all non-numeric characters
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Add slash after 2 digits for month
+    if (numericValue.length >= 2) {
+      return numericValue.slice(0, 2) + '/' + numericValue.slice(2, 4);
+    }
+    
+    return numericValue;
+  };
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCardNumber(e.target.value);
+    setValue("cardNumber", formatted);
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExpiryDate(e.target.value);
+    setValue("expiryDate", formatted);
+  };
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric characters and limit to 4 digits
+    const numericValue = e.target.value.replace(/\D/g, '').slice(0, 4);
+    setValue("cvv", numericValue);
+  };
+
   const mutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest("POST", "/api/funding-sources", data);
@@ -95,7 +133,9 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
             <Input 
               id="cardNumber"
               placeholder="1234 5678 9012 3456"
-              {...register("cardNumber", { required: true })}
+              value={watch("cardNumber") || ""}
+              onChange={handleCardNumberChange}
+              maxLength={19}
               className="mt-1"
             />
           </div>
@@ -105,7 +145,9 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
               <Input 
                 id="expiryDate"
                 placeholder="MM/YY"
-                {...register("expiryDate", { required: true })}
+                value={watch("expiryDate") || ""}
+                onChange={handleExpiryChange}
+                maxLength={5}
                 className="mt-1"
               />
             </div>
@@ -114,7 +156,9 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
               <Input 
                 id="cvv"
                 placeholder="123"
-                {...register("cvv", { required: true })}
+                value={watch("cvv") || ""}
+                onChange={handleCvvChange}
+                maxLength={4}
                 className="mt-1"
               />
             </div>
