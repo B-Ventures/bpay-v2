@@ -120,33 +120,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateUserStripeInfo(userId, stripeCustomerId, "");
       }
 
-      // For development/demo, create a mock payment method entry
-      // In production, this should use Stripe Elements for secure tokenization
+      // Create real Stripe payment method for testing
       let paymentMethod;
       
-      if (process.env.NODE_ENV === 'development') {
-        // Generate a mock payment method ID for development
-        const mockPaymentMethodId = `pm_mock_${nanoid(16)}`;
-        
-        // Create a mock payment method object for development
-        paymentMethod = {
-          id: mockPaymentMethodId,
+      try {
+        // Create payment method with Stripe (works with test cards)
+        paymentMethod = await stripe.paymentMethods.create({
           type: 'card',
           card: {
-            brand: getBrandFromNumber(cardNumber),
-            last4: cardNumber.slice(-4)
-          }
-        };
+            number: cardNumber,
+            exp_month: expiryMonth,
+            exp_year: expiryYear,
+            cvc: cvv,
+          },
+        });
         
-        console.log('Created mock payment method for development:', mockPaymentMethodId);
-      } else {
-        // In production, this would use payment method tokens from Stripe Elements
-        throw new Error('Direct card creation not supported in production. Use Stripe Elements.');
+        console.log('Created Stripe payment method:', paymentMethod.id);
+      } catch (stripeError: any) {
+        console.error('Stripe payment method creation error:', stripeError.message);
+        
+        // Fall back to mock for development if Stripe fails
+        if (process.env.NODE_ENV === 'development') {
+          const mockPaymentMethodId = `pm_mock_${nanoid(16)}`;
+          
+          paymentMethod = {
+            id: mockPaymentMethodId,
+            type: 'card',
+            card: {
+              brand: getBrandFromNumber(cardNumber),
+              last4: cardNumber.slice(-4)
+            }
+          };
+          
+          console.log('Fallback to mock payment method:', mockPaymentMethodId);
+        } else {
+          throw stripeError;
+        }
       }
 
-      // Skip Stripe attachment in development mode since we're using mock payment methods
-      if (process.env.NODE_ENV !== 'development') {
-        // Attach payment method to customer (only in production with real payment methods)
+      // Attach payment method to customer if it's a real Stripe payment method
+      if (!paymentMethod.id.startsWith('pm_mock_')) {
         await stripe.paymentMethods.attach(paymentMethod.id, {
           customer: stripeCustomerId,
         });
@@ -430,29 +443,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Process payment splits (demo mode - mock Stripe calls)
+      // Process payment splits with real Stripe API calls
       const paymentIntents = [];
       const totalAmount = parseFloat(amount);
       const feePercentage = 0.029; // 2.9% bpay fee
       const totalFees = totalAmount * feePercentage;
       const totalWithFees = totalAmount + totalFees;
 
-      // Mock payment processing for demo
+      // Process each split with real Stripe payment intents
       for (const split of splits) {
         const splitAmount = (totalWithFees * split.percentage) / 100;
+        const splitAmountCents = Math.round(splitAmount * 100);
         
-        // Simulate payment intent creation with mock data
-        const mockPaymentIntent = {
-          id: `pi_${nanoid(16)}`,
-          amount: splitAmount,
-          status: 'succeeded',
-          fundingSourceId: split.fundingSourceId
-        };
+        let paymentIntentResult;
+        
+        // Use real Stripe API if payment method is real, otherwise mock
+        if (!split.stripePaymentMethodId.startsWith('pm_mock_')) {
+          try {
+            // Create real Stripe payment intent
+            const paymentIntent = await stripe.paymentIntents.create({
+              amount: splitAmountCents,
+              currency: 'usd',
+              payment_method: split.stripePaymentMethodId,
+              customer: user.stripeCustomerId,
+              confirm: true,
+              return_url: 'https://your-domain.com/return', // Required for some payment methods
+              metadata: {
+                merchant,
+                splitAmount: splitAmount.toString(),
+                fundingSourceId: split.fundingSourceId.toString()
+              }
+            });
+            
+            paymentIntentResult = {
+              id: paymentIntent.id,
+              amount: splitAmount,
+              status: paymentIntent.status,
+              fundingSourceId: split.fundingSourceId
+            };
+            
+            console.log(`Real Stripe payment intent created: ${paymentIntent.id} for $${splitAmount}`);
+          } catch (stripeError: any) {
+            console.error(`Stripe payment failed for split:`, stripeError.message);
+            
+            // Log the error but continue with mock for this split
+            paymentIntentResult = {
+              id: `pi_mock_${nanoid(16)}`,
+              amount: splitAmount,
+              status: 'failed',
+              error: stripeError.message,
+              fundingSourceId: split.fundingSourceId
+            };
+          }
+        } else {
+          // Use mock processing for demo payment methods
+          paymentIntentResult = {
+            id: `pi_${nanoid(16)}`,
+            amount: splitAmount,
+            status: 'succeeded',
+            fundingSourceId: split.fundingSourceId
+          };
+          
+          // Add a small delay to simulate network request
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
 
-        paymentIntents.push(mockPaymentIntent);
-        
-        // Add a small delay to simulate network request
-        await new Promise(resolve => setTimeout(resolve, 100));
+        paymentIntents.push(paymentIntentResult);
       }
 
       // Validate splits total to 100%
