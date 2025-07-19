@@ -16,6 +16,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-06-30.basil",
 });
 
+// Helper function to determine card brand from number
+function getBrandFromNumber(cardNumber: string): string {
+  const cleanNumber = cardNumber.replace(/\s/g, '');
+  if (cleanNumber.startsWith('4')) return 'visa';
+  if (cleanNumber.startsWith('5')) return 'mastercard';
+  if (cleanNumber.startsWith('34') || cleanNumber.startsWith('37')) return 'amex';
+  return 'unknown';
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -111,25 +120,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateUserStripeInfo(userId, stripeCustomerId, "");
       }
 
-      // Create Stripe payment method
-      const paymentMethod = await stripe.paymentMethods.create({
-        type: 'card',
-        card: {
-          number: cardNumber.toString().replace(/\s/g, ''),
-          exp_month: parseInt(expiryMonth),
-          exp_year: parseInt(expiryYear),
-          cvc: cvv.toString(),
-        },
-      });
+      // For development/demo, use test payment method tokens
+      // In production, this should use Stripe Elements for secure tokenization
+      let paymentMethod;
+      
+      if (process.env.NODE_ENV === 'development') {
+        // Use Stripe test payment method tokens for demo
+        const testTokens = [
+          'pm_card_visa',
+          'pm_card_visa_debit',
+          'pm_card_mastercard',
+          'pm_card_amex'
+        ];
+        const randomToken = testTokens[Math.floor(Math.random() * testTokens.length)];
+        
+        // Get the test payment method
+        paymentMethod = await stripe.paymentMethods.retrieve(randomToken);
+      } else {
+        // In production, this would use payment method tokens from Stripe Elements
+        throw new Error('Direct card creation not supported in production. Use Stripe Elements.');
+      }
 
       // Attach payment method to customer
       await stripe.paymentMethods.attach(paymentMethod.id, {
         customer: stripeCustomerId,
       });
 
+      // Use user input for display, test payment method for Stripe
       const validatedData = insertFundingSourceSchema.parse({
-        ...req.body,
         userId,
+        name: req.body.name || `${req.body.brand?.toUpperCase() || 'CARD'} ••••${req.body.last4 || cardNumber.slice(-4)}`,
+        type: req.body.type || 'credit_card',
+        last4: req.body.last4 || cardNumber.slice(-4),
+        brand: req.body.brand || getBrandFromNumber(cardNumber),
+        defaultSplitPercentage: req.body.defaultSplitPercentage || 0,
         stripePaymentMethodId: paymentMethod.id,
       });
       
