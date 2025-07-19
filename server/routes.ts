@@ -82,11 +82,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/funding-sources', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Create funding source request:", req.body);
+      
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // Validate required fields
+      const { cardNumber, expiryMonth, expiryYear, cvv, name } = req.body;
+      if (!cardNumber || !expiryMonth || !expiryYear || !cvv || !name) {
+        return res.status(400).json({ 
+          message: "Missing required fields: cardNumber, expiryMonth, expiryYear, cvv, name",
+          receivedFields: Object.keys(req.body)
+        });
       }
 
       // Create Stripe customer if not exists
@@ -104,10 +115,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentMethod = await stripe.paymentMethods.create({
         type: 'card',
         card: {
-          number: req.body.cardNumber.replace(/\s/g, ''),
-          exp_month: parseInt(req.body.expiryMonth),
-          exp_year: parseInt(req.body.expiryYear),
-          cvc: req.body.cvv,
+          number: cardNumber.toString().replace(/\s/g, ''),
+          exp_month: parseInt(expiryMonth),
+          exp_year: parseInt(expiryYear),
+          cvc: cvv.toString(),
         },
       });
 
