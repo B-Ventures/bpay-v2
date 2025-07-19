@@ -44,9 +44,30 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
     return numericValue;
   };
 
+  // Detect card type from number
+  const getCardType = (cardNumber: string) => {
+    const cleanNumber = cardNumber.replace(/\s/g, '');
+    if (cleanNumber.startsWith('34') || cleanNumber.startsWith('37')) return 'amex';
+    if (cleanNumber.startsWith('4')) return 'visa';
+    if (cleanNumber.startsWith('5')) return 'mastercard';
+    return 'unknown';
+  };
+
+  const currentCardType = getCardType(watch("cardNumber") || "");
+  const cvvLength = currentCardType === 'amex' ? 4 : 3;
+
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCardNumber(e.target.value);
     setValue("cardNumber", formatted);
+    
+    // Clear CVV if card type changes (different CVV length requirements)
+    const newCardType = getCardType(formatted);
+    const currentCvv = watch("cvv") || "";
+    if (newCardType === 'amex' && currentCvv.length > 4) {
+      setValue("cvv", currentCvv.slice(0, 4));
+    } else if (newCardType !== 'amex' && currentCvv.length > 3) {
+      setValue("cvv", currentCvv.slice(0, 3));
+    }
   };
 
   const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,8 +76,9 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
   };
 
   const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numeric characters and limit to 3 digits (4 for Amex)
-    const numericValue = e.target.value.replace(/\D/g, '').slice(0, 3);
+    // Limit based on card type: 4 digits for Amex, 3 for others
+    const maxLength = cvvLength;
+    const numericValue = e.target.value.replace(/\D/g, '').slice(0, maxLength);
     setValue("cvv", numericValue);
   };
 
@@ -130,14 +152,21 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="cardNumber">Card Number</Label>
-            <Input 
-              id="cardNumber"
-              placeholder="1234 5678 9012 3456"
-              value={watch("cardNumber") || ""}
-              onChange={handleCardNumberChange}
-              maxLength={19}
-              className="mt-1"
-            />
+            <div className="relative">
+              <Input 
+                id="cardNumber"
+                placeholder="1234 5678 9012 3456"
+                value={watch("cardNumber") || ""}
+                onChange={handleCardNumberChange}
+                maxLength={19}
+                className="mt-1 pr-16"
+              />
+              {currentCardType !== 'unknown' && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                  {currentCardType.toUpperCase()}
+                </div>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -155,12 +184,15 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
               <Label htmlFor="cvv">CVV</Label>
               <Input 
                 id="cvv"
-                placeholder="123"
+                placeholder={currentCardType === 'amex' ? "1234" : "123"}
                 value={watch("cvv") || ""}
                 onChange={handleCvvChange}
-                maxLength={3}
+                maxLength={cvvLength}
                 className="mt-1"
               />
+              {currentCardType === 'amex' && (
+                <p className="text-xs text-gray-500 mt-1">Amex cards use 4-digit CVV</p>
+              )}
             </div>
           </div>
           <div>
