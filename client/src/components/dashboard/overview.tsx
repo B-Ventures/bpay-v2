@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { CreditCard, TrendingUp, Clock, Plus, Wallet, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
+import AddFundingModal from "@/components/modals/add-funding-modal";
 
 export default function Overview() {
   const { user } = useAuth();
+  const [showAddModal, setShowAddModal] = useState(false);
   
   const { data: virtualCards = [] } = useQuery({
     queryKey: ["/api/virtual-cards"],
@@ -95,6 +98,7 @@ export default function Overview() {
                 <span className="text-[hsl(249,83%,65%)]">→</span>
               </Button>
               <Button 
+                onClick={() => setShowAddModal(true)}
                 className="w-full flex items-center justify-between p-4 bg-[hsl(258,70%,68%)]/5 hover:bg-[hsl(258,70%,68%)]/10 h-auto"
                 variant="ghost"
               >
@@ -151,6 +155,11 @@ export default function Overview() {
           </CardContent>
         </Card>
       </div>
+
+      <AddFundingModal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+      />
     </div>
   );
 }
