@@ -115,6 +115,21 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 
 ## Recent Changes
 
+### January 20, 2025
+- **Comprehensive Demo Mode System**: Implemented global demo mode toggle with persistent state
+  - Created DemoModeProvider for application-wide state management
+  - Added compact, responsive demo mode toggle with tooltip functionality
+  - Integrated demo mode across funding sources, payment splitter, and transactions
+  - Toggle persists across browser sessions using localStorage
+  - Positioned toggle strategically below headers for optimal mobile experience
+
+- **Mobile-First UI Redesign**: Enhanced responsive design and user experience
+  - Completely redesigned transactions tab with card-based layout instead of table
+  - Improved mobile navigation with flexible tab positioning and demo toggle placement
+  - Added comprehensive transaction details including dates, virtual card names, and descriptions
+  - Enhanced header responsiveness with proper spacing and element positioning
+  - Fixed mobile overflow issues and improved touch-friendly interactions
+
 ### January 19, 2025
 - **Fixed Funding Source Creation**: Resolved critical Stripe integration issues
   - Replaced unsafe raw card data handling with mock payment methods for development
