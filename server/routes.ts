@@ -120,31 +120,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateUserStripeInfo(userId, stripeCustomerId, "");
       }
 
-      // For development/demo, use test payment method tokens
+      // For development/demo, create a mock payment method entry
       // In production, this should use Stripe Elements for secure tokenization
       let paymentMethod;
       
       if (process.env.NODE_ENV === 'development') {
-        // Use Stripe test payment method tokens for demo
-        const testTokens = [
-          'pm_card_visa',
-          'pm_card_visa_debit',
-          'pm_card_mastercard',
-          'pm_card_amex'
-        ];
-        const randomToken = testTokens[Math.floor(Math.random() * testTokens.length)];
+        // Generate a mock payment method ID for development
+        const mockPaymentMethodId = `pm_mock_${nanoid(16)}`;
         
-        // Get the test payment method
-        paymentMethod = await stripe.paymentMethods.retrieve(randomToken);
+        // Create a mock payment method object for development
+        paymentMethod = {
+          id: mockPaymentMethodId,
+          type: 'card',
+          card: {
+            brand: getBrandFromNumber(cardNumber),
+            last4: cardNumber.slice(-4)
+          }
+        };
+        
+        console.log('Created mock payment method for development:', mockPaymentMethodId);
       } else {
         // In production, this would use payment method tokens from Stripe Elements
         throw new Error('Direct card creation not supported in production. Use Stripe Elements.');
       }
 
-      // Attach payment method to customer
-      await stripe.paymentMethods.attach(paymentMethod.id, {
-        customer: stripeCustomerId,
-      });
+      // Skip Stripe attachment in development mode since we're using mock payment methods
+      if (process.env.NODE_ENV !== 'development') {
+        // Attach payment method to customer (only in production with real payment methods)
+        await stripe.paymentMethods.attach(paymentMethod.id, {
+          customer: stripeCustomerId,
+        });
+      }
 
       // Use user input for display, test payment method for Stripe
       const validatedData = insertFundingSourceSchema.parse({
