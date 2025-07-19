@@ -663,7 +663,7 @@ export default function PaymentDemo() {
                     variant="outline"
                     className="w-full"
                   >
-                    Try {demoMode === 'success' ? 'Failure' : 'Success'} Scenario
+                    Try {effectiveDemoMode === 'success' ? 'Failure' : 'Success'} Scenario
                   </Button>
                   <Link href="/">
                     <Button variant="outline" className="w-full">
