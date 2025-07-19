@@ -511,7 +511,7 @@ export default function PaymentDemo() {
                   <p><strong>Processing for:</strong> {merchant}</p>
                   <p><strong>Total Amount:</strong> ${amount}</p>
                   <p><strong>Expected Time:</strong> {paymentSplits && Array.isArray(paymentSplits) ? `${paymentSplits.length * 1.5 + 1}` : '3-5'} seconds</p>
-                  <p><strong>Demo Mode:</strong> {demoMode === 'success' ? 'Success Scenario' : 'Failure Scenario'}</p>
+                  <p><strong>Demo Mode:</strong> {effectiveDemoMode === 'success' ? 'Success Scenario' : 'Failure Scenario'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -659,7 +659,7 @@ export default function PaymentDemo() {
                     Make Another Payment
                   </Button>
                   <Button 
-                    onClick={toggleDemoMode}
+                    onClick={toggleLocalDemoMode}
                     variant="outline"
                     className="w-full"
                   >
