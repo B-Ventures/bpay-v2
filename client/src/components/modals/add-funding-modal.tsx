@@ -49,11 +49,15 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
     const [expiryMonth, expiryYear] = data.expiryDate.split('/');
     
     mutation.mutate({
-      name: data.cardholderName,
-      type: 'credit_card',
-      last4: cardNumber.slice(-4),
+      // Backend required fields
+      cardNumber: cardNumber,
       expiryMonth: parseInt(expiryMonth),
       expiryYear: parseInt(`20${expiryYear}`),
+      cvv: data.cvv,
+      name: data.cardholderName,
+      // Additional fields for database
+      type: 'credit_card',
+      last4: cardNumber.slice(-4),
       brand: getBrandFromNumber(cardNumber),
       defaultSplitPercentage: data.defaultSplitPercentage,
     });
