@@ -7,17 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentSplitter from "@/components/payment/payment-splitter";
 import DemoModeToggle from "@/components/ui/demo-mode-toggle";
+import { useDemoMode } from "@/components/providers/demo-mode-provider";
 
 type PaymentStep = 'checkout' | 'split' | 'bcard' | 'merchant' | 'complete';
 
 export default function PaymentDemo() {
+  const { isDemoMode } = useDemoMode();
   const [amount, setAmount] = useState(150);
   const [merchant, setMerchant] = useState("Demo Store");
   const [currentStep, setCurrentStep] = useState<PaymentStep>('checkout');
   const [paymentSplits, setPaymentSplits] = useState<any>(null);
   const [generatedBcard, setGeneratedBcard] = useState<any>(null);
   const [paymentResult, setPaymentResult] = useState<any>(null);
-  const [demoMode, setDemoMode] = useState<'success' | 'failure'>('success');
+  const [localDemoMode, setLocalDemoMode] = useState<'success' | 'failure'>('success');
+  
+  // Use global demo mode when available, otherwise fall back to local demo mode
+  const effectiveDemoMode = isDemoMode ? 'success' : localDemoMode;
 
   const handleSplitConfigured = (result: any) => {
     console.log("Payment result received:", result);
@@ -69,7 +74,7 @@ export default function PaymentDemo() {
     splits.forEach((split: any, index: number) => {
       setTimeout(() => {
         // Simulate failure scenario for demo purposes
-        if (demoMode === 'failure' && index === 1 && !hasError) {
+        if (effectiveDemoMode === 'failure' && index === 1 && !hasError) {
           hasError = true;
           updateProgress(index + 1, `Failed to process ${split.type}`, `Insufficient funds on ${split.name}. Available: $${(Math.random() * 50).toFixed(2)}, Required: $${split.percentage ? ((amount * split.percentage) / 100).toFixed(2) : split.amount}`);
           
@@ -141,8 +146,8 @@ export default function PaymentDemo() {
     setPaymentResult(null);
   };
 
-  const toggleDemoMode = () => {
-    setDemoMode(prev => prev === 'success' ? 'failure' : 'success');
+  const toggleLocalDemoMode = () => {
+    setLocalDemoMode(prev => prev === 'success' ? 'failure' : 'success');
     resetDemo();
   };
 
@@ -156,8 +161,8 @@ export default function PaymentDemo() {
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-[hsl(249,83%,65%)]">Payment Demo</h1>
                 <p className="text-xs sm:text-sm text-gray-600">
-                  Current Scenario: <span className={`font-semibold ${demoMode === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                    {demoMode === 'success' ? 'Success Flow' : 'Failure Flow'}
+                  Current Scenario: <span className={`font-semibold ${effectiveDemoMode === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                    {effectiveDemoMode === 'success' ? 'Success Flow' : 'Failure Flow'}
                   </span>
                 </p>
               </div>
@@ -213,40 +218,52 @@ export default function PaymentDemo() {
                   />
                 </div>
                 
-                {/* Demo Mode Selector */}
-                <div className="bg-gray-50 p-4 rounded-lg border">
-                  <Label className="text-sm font-medium mb-2 block">Demo Scenario</Label>
-                  <div className="flex space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="demoMode"
-                        value="success"
-                        checked={demoMode === 'success'}
-                        onChange={(e) => setDemoMode(e.target.value as 'success' | 'failure')}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">Success Flow</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="demoMode"
-                        value="failure"
-                        checked={demoMode === 'failure'}
-                        onChange={(e) => setDemoMode(e.target.value as 'success' | 'failure')}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">Failure Flow</span>
-                    </label>
+                {/* Demo Mode Selector - Only show if global demo mode is OFF */}
+                {!isDemoMode && (
+                  <div className="bg-gray-50 p-4 rounded-lg border">
+                    <Label className="text-sm font-medium mb-2 block">Demo Scenario</Label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="localDemoMode"
+                          value="success"
+                          checked={localDemoMode === 'success'}
+                          onChange={(e) => setLocalDemoMode(e.target.value as 'success' | 'failure')}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">Success Flow</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="localDemoMode"
+                          value="failure"
+                          checked={localDemoMode === 'failure'}
+                          onChange={(e) => setLocalDemoMode(e.target.value as 'success' | 'failure')}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">Failure Flow</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      {localDemoMode === 'success' 
+                        ? "Simulates successful payment processing and bcard generation"
+                        : "Simulates funding source failure and error handling"
+                      }
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-600 mt-2">
-                    {demoMode === 'success' 
-                      ? "Simulates successful payment processing and bcard generation"
-                      : "Simulates funding source failure and error handling"
-                    }
-                  </p>
-                </div>
+                )}
+                
+                {/* Global Demo Mode Info */}
+                {isDemoMode && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <Label className="text-sm font-medium mb-2 block text-blue-800">Global Demo Mode Active</Label>
+                    <p className="text-xs text-blue-600">
+                      Using global demo mode with success flow. Toggle demo mode in the header to switch to real data.
+                    </p>
+                  </div>
+                )}
                 
                 <div className="pt-4">
                   <Button 
