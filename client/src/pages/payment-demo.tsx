@@ -57,7 +57,7 @@ export default function PaymentDemo() {
     
     const updateProgress = (step: number, message: string, error?: string) => {
       progress = (step / totalSteps) * 100;
-      setGeneratedBcard(prev => ({
+      setGeneratedBcard((prev: any) => ({
         ...prev,
         progress,
         currentStep: message,
@@ -80,7 +80,7 @@ export default function PaymentDemo() {
           
           // Show retry/cancel options after 2 seconds
           setTimeout(() => {
-            setGeneratedBcard(prev => ({
+            setGeneratedBcard((prev: any) => ({
               ...prev,
               showRetryOptions: true
             }));
@@ -99,21 +99,94 @@ export default function PaymentDemo() {
       if (!hasError) {
         updateProgress(totalSteps, "Creating your bcard...");
         
-        // Complete bcard generation
-        setTimeout(() => {
-          const mockBcard = {
-            id: `bcard_${Date.now()}`,
-            number: "4555 1234 5678 9012",
-            expiry: "12/28",
-            cvv: "123",
-            balance: amount,
-            merchant: merchant,
-            status: "active",
-            progress: 100,
-            currentStep: "Complete"
-          };
-          setGeneratedBcard(mockBcard);
-          setCurrentStep('merchant');
+        // Complete bcard generation with real Stripe Issuing API
+        setTimeout(async () => {
+          try {
+            updateProgress(totalSteps, "Processing payment and creating bcard...");
+            
+            // Step 1: Process payment splits and capture funds
+            const paymentResponse = await fetch('/api/process-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                amount,
+                merchant,
+                virtualCardId: null, // Will create a new card
+                splits: splits
+              })
+            });
+
+            if (!paymentResponse.ok) {
+              throw new Error('Failed to process payment splits');
+            }
+
+            const paymentResult = await paymentResponse.json();
+            updateProgress(totalSteps, "Creating your bcard with captured funds...");
+
+            // Step 2: Create real virtual card using Stripe Issuing
+            const cardResponse = await fetch('/api/virtual-cards', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: `${merchant} Payment`,
+                spendingLimit: amount,
+                spendingLimits: [
+                  {
+                    amount: amount * 100, // Convert to cents
+                    interval: 'per_authorization'
+                  }
+                ],
+                allowedCategories: [], // Allow all categories for demo
+                blockedCategories: []
+              })
+            });
+
+            if (!cardResponse.ok) {
+              throw new Error('Failed to create virtual card');
+            }
+
+            const virtualCard = await cardResponse.json();
+
+            // Step 3: Get full card details for merchant checkout
+            const detailsResponse = await fetch(`/api/virtual-cards/${virtualCard.id}/checkout-details`);
+            const cardDetails = await detailsResponse.json();
+
+            const realBcard = {
+              id: virtualCard.id,
+              stripeCardId: virtualCard.stripeCardId,
+              number: cardDetails.cardNumber || `****-****-****-${virtualCard.stripeIssuingCard?.last4 || '****'}`,
+              expiry: `${cardDetails.expiryMonth?.toString().padStart(2, '0')}/${cardDetails.expiryYear?.toString().slice(-2)}`,
+              cvv: cardDetails.cvv || '***',
+              balance: amount,
+              merchant: merchant,
+              status: "active",
+              progress: 100,
+              currentStep: "Complete",
+              isRealCard: !cardDetails.isDemoCard
+            };
+
+            setGeneratedBcard(realBcard);
+            setCurrentStep('merchant');
+          } catch (error) {
+            console.error('Failed to create real bcard:', error);
+            
+            // Fallback to demo mode if user is not authenticated or API fails
+            const mockBcard = {
+              id: `bcard_demo_${Date.now()}`,
+              number: "4242 4242 4242 4242",
+              expiry: "12/28",
+              cvv: "123",
+              balance: amount,
+              merchant: merchant,
+              status: "active",
+              progress: 100,
+              currentStep: "Complete",
+              isRealCard: false,
+              demoNote: "Demo card - would be real with authentication"
+            };
+            setGeneratedBcard(mockBcard);
+            setCurrentStep('merchant');
+          }
         }, 1000);
       }
     }, splits.length * 1500 + 1000);
@@ -121,7 +194,7 @@ export default function PaymentDemo() {
 
   const retryPayment = () => {
     // Switch to success mode and retry
-    setDemoMode('success');
+    setLocalDemoMode('success');
     setGeneratedBcard(null);
     simulateBcardGeneration(paymentSplits);
   };
@@ -560,6 +633,15 @@ export default function PaymentDemo() {
                     <p>Balance: ${generatedBcard.balance}</p>
                     <p>Merchant: {generatedBcard.merchant}</p>
                     <p>Status: {generatedBcard.status}</p>
+                    {generatedBcard.isRealCard && (
+                      <p className="text-green-600 font-medium">✓ Real Stripe Issuing Card</p>
+                    )}
+                    {generatedBcard.demoNote && (
+                      <p className="text-blue-600 text-xs">{generatedBcard.demoNote}</p>
+                    )}
+                    {generatedBcard.stripeCardId && (
+                      <p className="text-xs text-gray-500">Stripe ID: {generatedBcard.stripeCardId}</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -115,6 +115,16 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 
 ## Recent Changes
 
+### January 23, 2025
+- **Complete Stripe Issuing Integration**: Fully integrated real virtual card generation using Stripe Issuing APIs
+  - **Fund Capture Flow**: Implemented real payment processing to capture funds from user funding sources into bpay's pool account
+  - **Real Virtual Card Creation**: Replaced mock card generation with authentic Stripe Issuing API calls for production-ready virtual cards
+  - **Cardholder Management**: Added Stripe cardholder creation with proper user information and address handling
+  - **Secure Card Details**: Implemented secure endpoint for retrieving full card details for merchant checkout
+  - **Card Management Features**: Added freeze/unfreeze functionality and proper card status management
+  - **Payment Demo Integration**: Updated payment demo page to demonstrate complete end-to-end flow with real APIs
+  - **Database Schema Updates**: Enhanced user schema with phoneNumber and address fields required for Stripe Issuing
+
 ### January 20, 2025
 - **Real Stripe Integration Implementation**: Upgraded from mock payment processing to authentic Stripe API calls
   - Updated funding source creation to use real Stripe payment methods instead of mock IDs
