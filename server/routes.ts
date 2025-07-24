@@ -323,6 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiryMonth: cardDetails.exp_month,
         expiryYear: cardDetails.exp_year,
         cvv: "***", // Never store real CVV
+        balance: (req.body.amount || 0).toString(), // Convert balance to string for decimal field
         stripeCardId: stripeCard.id,
         status: cardDetails.status,
       });
