@@ -19,7 +19,7 @@ interface FundingSource {
   name: string;
   type: string;
   last4: string;
-  balance: number;
+  balance: string; // Decimal comes as string from database
 }
 
 export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalProps) {
@@ -277,7 +277,7 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
                       <div>
                         <p className="font-medium">{source.name}</p>
                         <p className="text-sm text-gray-500">
-                          {source.type} •••• {source.last4} • Balance: ${(source.balance || 0).toFixed(2)}
+                          {source.type} •••• {source.last4} • Balance: ${parseFloat(source.balance || '0').toFixed(2)}
                         </p>
                       </div>
                     </div>

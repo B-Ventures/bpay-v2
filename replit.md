@@ -116,6 +116,14 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 ## Recent Changes
 
 ### January 24, 2025
+- **Unified bcard Creation Flow**: Successfully consolidated two separate bcard creation interfaces into single comprehensive process
+  - **Eliminated Duplicate Interfaces**: Removed inconsistent creation approaches between Quick Actions and Virtual Cards tab
+  - **Auto-populated Cardholder Names**: System now automatically fills cardholder names from user account registration data
+  - **Two-Step Creation Process**: Implemented step 1 (bcard details) and step 2 (funding source percentage splits)
+  - **Real-time Calculation**: Added live amount calculations as users adjust percentage splits across funding sources
+  - **Enhanced Validation**: System ensures funding splits total exactly 100% before allowing bcard creation
+  - **Database Schema Updates**: Added balance field to funding sources with proper decimal handling for mock balances
+  - **Error Resolution**: Fixed TypeScript errors related to decimal balance parsing from database responses
 - **Critical Security Fix - Balance Validation**: Implemented mandatory funding source balance validation before any bcard generation
   - **Pre-Processing Validation**: Added comprehensive balance checks that prevent card creation when funding sources lack sufficient funds
   - **Detailed Error Reporting**: Enhanced error messages show exactly which funding sources have insufficient balance
