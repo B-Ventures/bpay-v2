@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +52,11 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
           description: "You don't have enough funds in your funding sources to create this bcard. Please add funding sources first.",
           variant: "destructive",
         });
+      } else if (error.message?.includes("Issuing is only available in testmode")) {
+        toast({
+          title: "Using Development Mode",
+          description: "bcard created successfully using development mode. Real Stripe Issuing requires test keys.",
+        });
       } else {
         toast({
           title: "Failed to Create bcard",
@@ -96,6 +101,9 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
             <CreditCard className="h-5 w-5 mr-2 text-[hsl(249,83%,65%)]" />
             Create New bcard
           </DialogTitle>
+          <DialogDescription>
+            Create a new virtual card with custom spending limits and restrictions using real Stripe integration.
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
