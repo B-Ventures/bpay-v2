@@ -6,10 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import AddFundingModal from "@/components/modals/add-funding-modal";
+import CreateBcardModal from "@/components/bcard/create-bcard-modal";
 
 export default function Overview() {
   const { user } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCreateBcardModal, setShowCreateBcardModal] = useState(false);
   
   const { data: virtualCards = [] } = useQuery({
     queryKey: ["/api/virtual-cards"],
@@ -87,18 +89,17 @@ export default function Overview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <Link href="/payment-demo">
-                <Button 
-                  className="w-full flex items-center justify-between p-4 bg-[hsl(249,83%,65%)]/5 hover:bg-[hsl(249,83%,65%)]/10 h-auto"
-                  variant="ghost"
-                >
-                  <div className="flex items-center">
-                    <Plus className="text-[hsl(249,83%,65%)] h-5 w-5 mr-3" />
-                    <span className="font-medium">Create bcard</span>
-                  </div>
-                  <span className="text-[hsl(249,83%,65%)]">→</span>
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => setShowCreateBcardModal(true)}
+                className="w-full flex items-center justify-between p-4 bg-[hsl(249,83%,65%)]/5 hover:bg-[hsl(249,83%,65%)]/10 h-auto"
+                variant="ghost"
+              >
+                <div className="flex items-center">
+                  <Plus className="text-[hsl(249,83%,65%)] h-5 w-5 mr-3" />
+                  <span className="font-medium">Create bcard</span>
+                </div>
+                <span className="text-[hsl(249,83%,65%)]">→</span>
+              </Button>
               <Button 
                 onClick={() => setShowAddModal(true)}
                 className="w-full flex items-center justify-between p-4 bg-[hsl(258,70%,68%)]/5 hover:bg-[hsl(258,70%,68%)]/10 h-auto"
@@ -161,6 +162,10 @@ export default function Overview() {
       <AddFundingModal 
         isOpen={showAddModal} 
         onClose={() => setShowAddModal(false)} 
+      />
+      <CreateBcardModal 
+        isOpen={showCreateBcardModal} 
+        onClose={() => setShowCreateBcardModal(false)} 
       />
     </div>
   );
