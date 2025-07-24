@@ -34,6 +34,11 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
   
   // Auto-populate cardholder name from user registration
   const cardholderName = user ? `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() || 'bpay User' : 'bpay User';
+  
+  // Calculate fees (2.9% bpay fee)
+  const BPAY_FEE_RATE = 0.029;
+  const fees = bcardAmount * BPAY_FEE_RATE;
+  const totalAmountWithFees = bcardAmount + fees;
 
   // Fetch funding sources
   const { data: fundingSources = [], isLoading: loadingFunding } = useQuery<FundingSource[]>({
@@ -55,9 +60,9 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
   const totalAllocated = Object.values(fundingSplits).reduce((sum, percent) => sum + (percent || 0), 0);
   const remainingPercent = 100 - totalAllocated;
 
-  // Calculate amounts for each funding source
+  // Calculate amounts for each funding source (including fees)
   const fundingAmounts = Object.entries(fundingSplits).reduce((acc, [sourceId, percent]) => {
-    acc[parseInt(sourceId)] = (bcardAmount * (percent || 0)) / 100;
+    acc[parseInt(sourceId)] = (totalAmountWithFees * (percent || 0)) / 100;
     return acc;
   }, {} as Record<number, number>);
 
@@ -66,6 +71,30 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
       // Validate splits add up to 100%
       if (Math.abs(totalAllocated - 100) > 0.01) {
         throw new Error('Funding splits must add up to 100%');
+      }
+
+      // Check if funding sources have sufficient balance
+      const insufficientSources = Object.entries(fundingSplits)
+        .filter(([_, percent]) => percent > 0)
+        .map(([sourceId, percent]) => {
+          const source = fundingSources.find(s => s.id === parseInt(sourceId));
+          const requiredAmount = fundingAmounts[parseInt(sourceId)];
+          const availableBalance = parseFloat(source?.balance || '0');
+          return {
+            sourceId: parseInt(sourceId),
+            sourceName: source?.name || 'Unknown',
+            required: requiredAmount,
+            available: availableBalance,
+            insufficient: requiredAmount > availableBalance
+          };
+        })
+        .filter(s => s.insufficient);
+
+      if (insufficientSources.length > 0) {
+        const details = insufficientSources.map(s => 
+          `${s.sourceName}: needs $${s.required.toFixed(2)}, has $${s.available.toFixed(2)}`
+        ).join('; ');
+        throw new Error(`Insufficient funds in funding sources. ${details}`);
       }
 
       // Prepare funding split data
@@ -245,13 +274,24 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
         {step === 'funding' && (
           <div className="space-y-6">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-blue-900">Total Amount:</span>
-                <span className="text-xl font-bold text-blue-900">${bcardAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-blue-700">Allocated:</span>
-                <span className="text-sm font-medium text-blue-700">{totalAllocated.toFixed(1)}% ({remainingPercent.toFixed(1)}% remaining)</span>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-blue-700">bcard Amount:</span>
+                  <span className="font-medium text-blue-900">${bcardAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-blue-700">bpay Fee (2.9%):</span>
+                  <span className="font-medium text-orange-600">+${fees.toFixed(2)}</span>
+                </div>
+                <hr className="border-blue-300" />
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-blue-900">Total to Deduct:</span>
+                  <span className="text-xl font-bold text-blue-900">${totalAmountWithFees.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-blue-700">Allocated:</span>
+                  <span className="text-sm font-medium text-blue-700">{totalAllocated.toFixed(1)}% ({remainingPercent.toFixed(1)}% remaining)</span>
+                </div>
               </div>
             </div>
 
@@ -271,14 +311,24 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
                   Funding Split Percentages
                 </h3>
                 
-                {fundingSources.map((source: FundingSource) => (
-                  <div key={source.id} className="border rounded-lg p-4">
+                {fundingSources.map((source: FundingSource) => {
+                  const requiredAmount = fundingAmounts[source.id] || 0;
+                  const availableBalance = parseFloat(source.balance || '0');
+                  const hasInsufficientFunds = requiredAmount > availableBalance && fundingSplits[source.id] > 0;
+                  
+                  return (
+                  <div key={source.id} className={`border rounded-lg p-4 ${hasInsufficientFunds ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}>
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <p className="font-medium">{source.name}</p>
                         <p className="text-sm text-gray-500">
-                          {source.type} •••• {source.last4} • Balance: ${parseFloat(source.balance || '0').toFixed(2)}
+                          {source.type} •••• {source.last4} • Balance: ${availableBalance.toFixed(2)}
                         </p>
+                        {hasInsufficientFunds && (
+                          <p className="text-xs text-red-600 mt-1">
+                            ⚠️ Insufficient funds: needs ${requiredAmount.toFixed(2)}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
@@ -305,7 +355,8 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
