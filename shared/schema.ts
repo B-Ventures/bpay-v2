@@ -53,6 +53,7 @@ export const fundingSources = pgTable("funding_sources", {
   expiryYear: integer("expiry_year"),
   brand: varchar("brand"), // visa, mastercard, etc.
   isActive: boolean("is_active").default(true),
+  balance: decimal("balance", { precision: 10, scale: 2 }).default("100.00"), // Mock balance for testing
   defaultSplitPercentage: decimal("default_split_percentage", { precision: 5, scale: 2 }).default("0"),
   stripePaymentMethodId: varchar("stripe_payment_method_id"),
   createdAt: timestamp("created_at").defaultNow(),

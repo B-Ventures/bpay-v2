@@ -172,6 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: req.body.type || 'credit_card',
         last4: req.body.last4 || cardNumber.slice(-4),
         brand: req.body.brand || getBrandFromNumber(cardNumber),
+        balance: "100.00", // Mock balance for testing
         defaultSplitPercentage: req.body.defaultSplitPercentage || 0,
         stripePaymentMethodId: paymentMethod.id,
       });

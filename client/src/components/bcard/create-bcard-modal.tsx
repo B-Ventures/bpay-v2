@@ -277,7 +277,7 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
                       <div>
                         <p className="font-medium">{source.name}</p>
                         <p className="text-sm text-gray-500">
-                          {source.type} •••• {source.last4} • Balance: ${source.balance.toFixed(2)}
+                          {source.type} •••• {source.last4} • Balance: ${(source.balance || 0).toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -298,7 +298,7 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
                       <div>
                         <Label className="text-xs">Amount ($)</Label>
                         <Input
-                          value={fundingAmounts[source.id]?.toFixed(2) || '0.00'}
+                          value={(fundingAmounts[source.id] || 0).toFixed(2)}
                           disabled
                           className="bg-gray-50"
                         />
