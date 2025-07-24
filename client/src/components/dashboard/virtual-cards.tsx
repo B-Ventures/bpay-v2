@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import CreateCardModal from "@/components/modals/create-card-modal";
+import CreateBcardModal from "@/components/bcard/create-bcard-modal";
 
 export default function VirtualCards() {
   const { user } = useAuth();
@@ -37,7 +37,7 @@ export default function VirtualCards() {
               className="bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)]"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Card
+              Create bcard
             </Button>
           </div>
         </CardHeader>
@@ -47,13 +47,13 @@ export default function VirtualCards() {
               <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <CreditCard className="h-8 w-8" />
               </div>
-              <p className="text-lg font-medium mb-2">No virtual cards yet</p>
-              <p className="text-sm mb-4">Create your first virtual card to start making payments</p>
+              <p className="text-lg font-medium mb-2">No bcards yet</p>
+              <p className="text-sm mb-4">Create your first bcard to start making payments</p>
               <Button 
                 onClick={() => setShowCreateModal(true)}
                 className="bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)]"
               >
-                Create Virtual Card
+                Create bcard
               </Button>
             </div>
           ) : (
@@ -84,16 +84,19 @@ export default function VirtualCards() {
                   </div>
                 </div>
               ))}
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-400 hover:border-[hsl(249,83%,65%)] hover:text-[hsl(249,83%,65%)] transition-colors cursor-pointer">
+              <div 
+                onClick={() => setShowCreateModal(true)}
+                className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-400 hover:border-[hsl(249,83%,65%)] hover:text-[hsl(249,83%,65%)] transition-colors cursor-pointer"
+              >
                 <Plus className="h-12 w-12 mb-2" />
-                <p className="font-medium">Create New Card</p>
+                <p className="font-medium">Create New bcard</p>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <CreateCardModal 
+      <CreateBcardModal 
         isOpen={showCreateModal} 
         onClose={() => setShowCreateModal(false)} 
       />

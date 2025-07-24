@@ -1,61 +1,106 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { CreditCard, DollarSign, Shield } from "lucide-react";
+import { Shield, CreditCard, Percent, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CreateBcardModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface FundingSource {
+  id: number;
+  name: string;
+  type: string;
+  last4: string;
+  balance: number;
+}
+
 export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({
-    name: '',
-    spendingLimit: 1000,
-    interval: 'monthly' as const,
-    allowedCategories: [] as string[],
-    blockedCategories: [] as string[]
+  const { user } = useAuth();
+  
+  const [step, setStep] = useState<'details' | 'funding'>('details');
+  const [bcardName, setBcardName] = useState('');
+  const [bcardAmount, setBcardAmount] = useState<number>(100);
+  const [fundingSplits, setFundingSplits] = useState<Record<number, number>>({});
+  
+  // Auto-populate cardholder name from user registration
+  const cardholderName = user ? `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() || 'bpay User' : 'bpay User';
+
+  // Fetch funding sources
+  const { data: fundingSources = [], isLoading: loadingFunding } = useQuery<FundingSource[]>({
+    queryKey: ["/api/funding-sources"],
+    enabled: isOpen && step === 'funding',
   });
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setBcardName('');
+      setBcardAmount(100);
+      setFundingSplits({});
+      setStep('details');
+    }
+  }, [isOpen]);
+
+  // Calculate total percentage allocated
+  const totalAllocated = Object.values(fundingSplits).reduce((sum, percent) => sum + (percent || 0), 0);
+  const remainingPercent = 100 - totalAllocated;
+
+  // Calculate amounts for each funding source
+  const fundingAmounts = Object.entries(fundingSplits).reduce((acc, [sourceId, percent]) => {
+    acc[parseInt(sourceId)] = (bcardAmount * (percent || 0)) / 100;
+    return acc;
+  }, {} as Record<number, number>);
+
   const createBcardMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/virtual-cards", data);
+    mutationFn: async () => {
+      // Validate splits add up to 100%
+      if (Math.abs(totalAllocated - 100) > 0.01) {
+        throw new Error('Funding splits must add up to 100%');
+      }
+
+      // Prepare funding split data
+      const selectedSources = Object.entries(fundingSplits)
+        .filter(([_, percent]) => percent > 0)
+        .map(([sourceId, percent]) => ({
+          fundingSourceId: parseInt(sourceId),
+          percentage: percent,
+          amount: fundingAmounts[parseInt(sourceId)]
+        }));
+
+      const response = await apiRequest("POST", "/api/virtual-cards", {
+        name: bcardName,
+        cardholderName: cardholderName,
+        balance: bcardAmount,
+        fundingSources: selectedSources,
+        spendingLimit: bcardAmount, // Set spending limit to initial balance
+        interval: 'monthly'
+      });
       return response.json();
     },
     onSuccess: (result) => {
       toast({
         title: "bcard Created Successfully!",
-        description: `Your new bcard "${result.name}" is ready to use with $${result.balance} balance.`,
+        description: `Your new bcard "${result.name}" is ready with $${bcardAmount} balance.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/virtual-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/funding-sources"] });
       onClose();
-      setFormData({
-        name: '',
-        spendingLimit: 1000,
-        interval: 'monthly',
-        allowedCategories: [],
-        blockedCategories: []
-      });
     },
     onError: (error: any) => {
       if (error.message?.includes("Insufficient funds")) {
         toast({
           title: "Insufficient Funds",
-          description: "You don't have enough funds in your funding sources to create this bcard. Please add funding sources first.",
-          variant: "destructive",
-        });
-      } else if (error.message?.includes("Issuing") && error.message?.includes("testmode")) {
-        toast({
-          title: "Issuing API Error",
-          description: "There was an issue with Stripe Issuing. Please check your API keys or try again.",
+          description: "Some funding sources don't have enough balance for the requested amounts.",
           variant: "destructive",
         });
       } else {
@@ -68,124 +113,215 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name.trim()) {
+  const handleNext = () => {
+    if (!bcardName.trim()) {
       toast({
-        title: "Missing Information",
+        title: "bcard Name Required",
         description: "Please enter a name for your bcard.",
         variant: "destructive",
       });
       return;
     }
 
-    createBcardMutation.mutate({
-      name: formData.name,
-      spendingLimit: formData.spendingLimit,
-      spendingLimits: [
-        {
-          amount: formData.spendingLimit * 100, // Convert to cents
-          interval: formData.interval
-        }
-      ],
-      allowedCategories: formData.allowedCategories,
-      blockedCategories: formData.blockedCategories
-    });
+    if (bcardAmount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid amount greater than $0.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setStep('funding');
   };
+
+  const handleBack = () => {
+    setStep('details');
+  };
+
+  const handleSplitChange = (sourceId: number, percent: string) => {
+    const numPercent = Math.max(0, Math.min(100, parseFloat(percent) || 0));
+    setFundingSplits(prev => ({
+      ...prev,
+      [sourceId]: numPercent
+    }));
+  };
+
+  const handleCreateBcard = () => {
+    createBcardMutation.mutate();
+  };
+
+  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <CreditCard className="h-5 w-5 mr-2 text-[hsl(249,83%,65%)]" />
+          <DialogTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
             Create New bcard
           </DialogTitle>
           <DialogDescription>
-            Create a new virtual card with custom spending limits and restrictions using real Stripe integration.
+            {step === 'details' 
+              ? 'Set up your new virtual card with a name and balance amount.'
+              : 'Choose how to fund your bcard by splitting across your available funding sources.'
+            }
           </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Card Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">bcard Name</Label>
-            <Input
-              id="name"
-              placeholder="e.g., Shopping Card, Travel Card"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              required
-            />
-          </div>
 
-          {/* Spending Limit */}
-          <div className="space-y-2">
-            <Label htmlFor="spending-limit" className="flex items-center">
-              <DollarSign className="h-4 w-4 mr-1" />
-              Spending Limit
-            </Label>
-            <Input
-              id="spending-limit"
-              type="number"
-              placeholder="1000"
-              value={formData.spendingLimit}
-              onChange={(e) => setFormData(prev => ({ ...prev, spendingLimit: parseInt(e.target.value) || 0 }))}
-              min="1"
-              required
-            />
-          </div>
+        {step === 'details' && (
+          <div className="space-y-6">
+            {/* Cardholder Name (Auto-populated) */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Cardholder Name
+              </Label>
+              <Input
+                value={cardholderName}
+                disabled
+                className="bg-gray-50 text-gray-600"
+              />
+              <p className="text-xs text-gray-500">
+                Name is automatically set from your account registration.
+              </p>
+            </div>
 
-          {/* Limit Interval */}
-          <div className="space-y-2">
-            <Label htmlFor="interval">Limit Period</Label>
-            <Select value={formData.interval} onValueChange={(value: any) => setFormData(prev => ({ ...prev, interval: value }))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-                <SelectItem value="all_time">One-time (Total)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* bcard Name */}
+            <div className="space-y-2">
+              <Label htmlFor="bcardName">bcard Name (Alias)</Label>
+              <Input
+                id="bcardName"
+                placeholder="e.g., Shopping Card, Travel Card"
+                value={bcardName}
+                onChange={(e) => setBcardName(e.target.value)}
+              />
+            </div>
 
-          {/* Security Info */}
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <div className="flex items-start">
-              <Shield className="h-5 w-5 text-green-600 mt-0.5 mr-2" />
-              <div>
-                <p className="text-sm font-medium text-green-900">Real Stripe Test Mode bcard</p>
-                <p className="text-xs text-green-700 mt-1">
-                  Using authentic Stripe Issuing APIs in test mode. This creates real virtual cards with genuine card numbers, CVV, and expiry dates for testing.
-                </p>
+            {/* bcard Amount */}
+            <div className="space-y-2">
+              <Label htmlFor="bcardAmount">bcard Balance Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                <Input
+                  id="bcardAmount"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  className="pl-8"
+                  value={bcardAmount}
+                  onChange={(e) => setBcardAmount(parseFloat(e.target.value) || 0)}
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                Amount to be loaded onto your bcard from your funding sources.
+              </p>
+            </div>
+
+            {/* Security Info */}
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-start">
+                <Shield className="h-5 w-5 text-green-600 mt-0.5 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-green-900">Real Stripe Test Mode bcard</p>
+                  <p className="text-xs text-green-700 mt-1">
+                    Using authentic Stripe Issuing APIs in test mode. This creates real virtual cards with genuine card numbers, CVV, and expiry dates for testing.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex space-x-3">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={createBcardMutation.isPending}
-              className="flex-1 bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)]"
-            >
-              {createBcardMutation.isPending ? "Creating..." : "Create bcard"}
-            </Button>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button onClick={handleNext}>
+                Next: Select Funding
+              </Button>
+            </div>
           </div>
-        </form>
+        )}
+
+        {step === 'funding' && (
+          <div className="space-y-6">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium text-blue-900">Total Amount:</span>
+                <span className="text-xl font-bold text-blue-900">${bcardAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-700">Allocated:</span>
+                <span className="text-sm font-medium text-blue-700">{totalAllocated.toFixed(1)}% ({remainingPercent.toFixed(1)}% remaining)</span>
+              </div>
+            </div>
+
+            {loadingFunding ? (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                <p className="text-sm text-gray-500">Loading funding sources...</p>
+              </div>
+            ) : fundingSources.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No funding sources available. Please add funding sources first.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Percent className="h-4 w-4" />
+                  Funding Split Percentages
+                </h3>
+                
+                {fundingSources.map((source: FundingSource) => (
+                  <div key={source.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="font-medium">{source.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {source.type} •••• {source.last4} • Balance: ${source.balance.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 items-center">
+                      <div>
+                        <Label className="text-xs">Percentage (%)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={fundingSplits[source.id] || ''}
+                          onChange={(e) => handleSplitChange(source.id, e.target.value)}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Amount ($)</Label>
+                        <Input
+                          value={fundingAmounts[source.id]?.toFixed(2) || '0.00'}
+                          disabled
+                          className="bg-gray-50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-between gap-3">
+              <Button variant="outline" onClick={handleBack}>
+                Back
+              </Button>
+              <Button 
+                onClick={handleCreateBcard}
+                disabled={Math.abs(totalAllocated - 100) > 0.01 || createBcardMutation.isPending || fundingSources.length === 0}
+              >
+                {createBcardMutation.isPending ? "Creating bcard..." : "Create bcard"}
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
