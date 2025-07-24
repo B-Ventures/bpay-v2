@@ -13,11 +13,7 @@ export class StripeIssuingService {
   private isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') || false;
 
   constructor() {
-    if (!this.isTestMode) {
-      console.warn('⚠️  Stripe Issuing requires test keys. Using test mode fallback for card creation.');
-      // Force test mode for Issuing operations since live mode isn't available for most accounts
-      this.isTestMode = true;
-    }
+    console.log(this.isTestMode ? '✅ Using Stripe test keys - Real Issuing APIs enabled' : '⚠️  Live keys detected - Using mock mode for Issuing');
   }
 
   // Fund the Issuing balance (required before creating cards)
@@ -75,32 +71,25 @@ export class StripeIssuingService {
   // Create cardholder for user
   async createCardholder(user: any) {
     try {
-      // Always use mock cardholder since live Stripe keys don't support Issuing
-      console.log('Creating mock cardholder due to Issuing live mode restrictions');
-      return {
-        id: `ich_${nanoid(16)}`,
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'bpay User',
-        email: user.email,
-        status: 'active',
-        type: 'individual',
-        metadata: {
-          source: 'bpay',
-          created_by: 'bpay_system'
-        }
-      };
-
-      if (this.isTestMode) {
-        // Return mock cardholder for development
+      if (!this.isTestMode) {
+        // Use mock cardholder for live keys since Issuing isn't available
+        console.log('Creating mock cardholder due to live key restrictions');
         return {
           id: `ich_${nanoid(16)}`,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'bpay User',
           email: user.email,
           status: 'active',
           type: 'individual',
+          metadata: {
+            source: 'bpay',
+            created_by: 'bpay_system'
+          }
         };
       }
 
-      const cardholder = await stripe.issuing.cardholders.create({
+      // Create real Stripe cardholder with test keys
+      console.log('Creating real Stripe cardholder with test keys');
+      const stripeCardholder = await stripe.issuing.cardholders.create({
         name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'bpay User',
         email: user.email || undefined,
         phone_number: user.phoneNumber || undefined,
@@ -115,9 +104,13 @@ export class StripeIssuingService {
             country: 'US',
           },
         },
+        metadata: {
+          source: 'bpay',
+          created_by: 'bpay_system'
+        }
       });
       
-      return cardholder;
+      return stripeCardholder;
     } catch (error) {
       console.error('Error creating cardholder:', error);
       throw error;
@@ -127,27 +120,9 @@ export class StripeIssuingService {
   // Create bcard (virtual card)
   async createBcard(cardholderId: string, spendingControls: any) {
     try {
-      // Always use mock card since live Stripe keys don't support Issuing
-      console.log('Creating mock bcard due to Issuing live mode restrictions');
-      return {
-        id: `ic_${nanoid(16)}`,
-        cardholder: cardholderId,
-        currency: 'usd',
-        type: 'virtual',
-        status: 'active',
-        last4: Math.floor(Math.random() * 9000) + 1000,
-        exp_month: Math.floor(Math.random() * 12) + 1,
-        exp_year: new Date().getFullYear() + Math.floor(Math.random() * 5) + 1,
-        brand: 'visa',
-        spending_controls: spendingControls,
-        metadata: {
-          source: 'bpay',
-          created_by: 'bpay_system',
-        }
-      };
-
-      if (this.isTestMode) {
-        // Return mock card for development
+      if (!this.isTestMode) {
+        // Use mock card for live keys since Issuing isn't available
+        console.log('Creating mock bcard due to live key restrictions');
         return {
           id: `ic_${nanoid(16)}`,
           cardholder: cardholderId,
@@ -159,10 +134,20 @@ export class StripeIssuingService {
           exp_year: new Date().getFullYear() + Math.floor(Math.random() * 5) + 1,
           brand: 'visa',
           spending_controls: spendingControls,
+          metadata: {
+            source: 'bpay',
+            created_by: 'bpay_system',
+          }
         };
       }
 
-      const card = await stripe.issuing.cards.create({
+      // Create real Stripe Issuing card with test keys
+      console.log('Creating real Stripe Issuing bcard with test keys');
+      
+      // First, fund the test Issuing balance if needed
+      await this.fundIssuingBalance(1000); // Fund with $1000 for testing
+
+      const stripeCard = await stripe.issuing.cards.create({
         cardholder: cardholderId,
         currency: 'usd',
         type: 'virtual',
@@ -174,172 +159,64 @@ export class StripeIssuingService {
         },
       });
       
-      return card;
+      return stripeCard;
     } catch (error) {
       console.error('Error creating bcard:', error);
       throw error;
     }
   }
 
-  // Update spending controls
-  async updateSpendingControls(cardId: string, spendingControls: any) {
+  // Get card details (including sensitive data like full PAN)
+  async getCardDetails(cardId: string) {
     try {
-      if (this.isTestMode) {
+      if (!this.isTestMode) {
+        // Return mock card details for live mode
         return {
           id: cardId,
-          spending_controls: spendingControls,
+          number: '4242424242424242',
+          exp_month: 12,
+          exp_year: 2027,
+          cvc: '123',
+          brand: 'visa',
+          type: 'virtual'
         };
       }
 
-      const card = await stripe.issuing.cards.update(cardId, {
-        spending_controls: spendingControls,
+      const card = await stripe.issuing.cards.retrieve(cardId, {
+        expand: ['number', 'cvc']
       });
       
-      return card;
+      return {
+        id: card.id,
+        number: (card as any).number,
+        exp_month: card.exp_month,
+        exp_year: card.exp_year,
+        cvc: (card as any).cvc,
+        brand: card.brand,
+        type: card.type
+      };
     } catch (error) {
-      console.error('Error updating spending controls:', error);
+      console.error('Error retrieving card details:', error);
       throw error;
     }
   }
 
-  // Freeze/unfreeze card
+  // Update card status (freeze/unfreeze)
   async updateCardStatus(cardId: string, status: 'active' | 'inactive') {
     try {
-      if (this.isTestMode) {
-        return {
-          id: cardId,
-          status: status,
-        };
+      if (!this.isTestMode) {
+        console.log(`Mock: Card ${cardId} status updated to ${status}`);
+        return { id: cardId, status };
       }
 
-      const card = await stripe.issuing.cards.update(cardId, {
-        status,
-      });
-      
+      const card = await stripe.issuing.cards.update(cardId, { status });
       return card;
     } catch (error) {
       console.error('Error updating card status:', error);
       throw error;
     }
   }
-
-  // Get card details (for display)
-  async getCardDetails(cardId: string) {
-    try {
-      if (this.isTestMode) {
-        return {
-          id: cardId,
-          last4: '1234',
-          exp_month: 12,
-          exp_year: 2025,
-          brand: 'visa',
-          status: 'active',
-          spending_controls: {
-            spending_limits: [],
-            allowed_categories: [],
-            blocked_categories: [],
-          },
-        };
-      }
-
-      const card = await stripe.issuing.cards.retrieve(cardId);
-      return {
-        id: card.id,
-        last4: card.last4,
-        exp_month: card.exp_month,
-        exp_year: card.exp_year,
-        brand: card.brand,
-        status: card.status,
-        spending_controls: card.spending_controls,
-      };
-    } catch (error) {
-      console.error('Error fetching card details:', error);
-      throw error;
-    }
-  }
-
-  // Get sensitive card details (for transactions)
-  async getFullCardDetails(cardId: string) {
-    try {
-      if (this.isTestMode) {
-        return {
-          number: '4242424242424242',
-          cvc: '123',
-          exp_month: 12,
-          exp_year: 2025,
-        };
-      }
-
-      const card = await stripe.issuing.cards.retrieve(cardId, {
-        expand: ['number', 'cvc'],
-      });
-      
-      return {
-        number: card.number,
-        cvc: card.cvc,
-        exp_month: card.exp_month,
-        exp_year: card.exp_year,
-      };
-    } catch (error) {
-      console.error('Error fetching full card details:', error);
-      throw error;
-    }
-  }
-
-  // Create authorization for spending
-  async createAuthorization(cardId: string, amount: number, merchant: string) {
-    try {
-      if (this.isTestMode) {
-        return {
-          id: `iauth_${nanoid(16)}`,
-          card: cardId,
-          amount: amount * 100,
-          currency: 'usd',
-          merchant_data: {
-            name: merchant,
-          },
-          approved: true,
-          status: 'pending',
-        };
-      }
-
-      // In production, this would be handled by Stripe's real-time authorization
-      // This is just for reference - actual authorizations happen automatically
-      return {
-        id: `iauth_${nanoid(16)}`,
-        card: cardId,
-        amount: amount * 100,
-        currency: 'usd',
-        merchant_data: {
-          name: merchant,
-        },
-        approved: true,
-        status: 'pending',
-      };
-    } catch (error) {
-      console.error('Error creating authorization:', error);
-      throw error;
-    }
-  }
-
-  // Get transaction history
-  async getTransactions(cardId: string) {
-    try {
-      if (this.isTestMode) {
-        return [];
-      }
-
-      const transactions = await stripe.issuing.transactions.list({
-        card: cardId,
-        limit: 50,
-      });
-      
-      return transactions.data;
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      throw error;
-    }
-  }
 }
 
+// Export a singleton instance
 export const stripeIssuingService = new StripeIssuingService();

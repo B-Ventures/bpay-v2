@@ -52,10 +52,11 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
           description: "You don't have enough funds in your funding sources to create this bcard. Please add funding sources first.",
           variant: "destructive",
         });
-      } else if (error.message?.includes("Issuing is only available in testmode")) {
+      } else if (error.message?.includes("Issuing") && error.message?.includes("testmode")) {
         toast({
-          title: "Using Development Mode",
-          description: "bcard created successfully using development mode. Real Stripe Issuing requires test keys.",
+          title: "Issuing API Error",
+          description: "There was an issue with Stripe Issuing. Please check your API keys or try again.",
+          variant: "destructive",
         });
       } else {
         toast({
@@ -154,13 +155,13 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
           </div>
 
           {/* Security Info */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
             <div className="flex items-start">
-              <Shield className="h-5 w-5 text-blue-600 mt-0.5 mr-2" />
+              <Shield className="h-5 w-5 text-green-600 mt-0.5 mr-2" />
               <div>
-                <p className="text-sm font-medium text-blue-900">Real Stripe Issuing bcard</p>
-                <p className="text-xs text-blue-700 mt-1">
-                  This will create an authentic virtual card using Stripe Issuing APIs with your specified spending limits and restrictions.
+                <p className="text-sm font-medium text-green-900">Real Stripe Test Mode bcard</p>
+                <p className="text-xs text-green-700 mt-1">
+                  Using authentic Stripe Issuing APIs in test mode. This creates real virtual cards with genuine card numbers, CVV, and expiry dates for testing.
                 </p>
               </div>
             </div>
