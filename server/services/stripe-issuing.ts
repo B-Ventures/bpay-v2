@@ -10,7 +10,59 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 export class StripeIssuingService {
-  private isTestMode = process.env.NODE_ENV === 'development';
+  private isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') || false;
+
+  // Fund the Issuing balance (required before creating cards)
+  async fundIssuingBalance(amount: number, currency: string = 'usd') {
+    try {
+      if (this.isTestMode) {
+        // Use test helper to simulate funding in test mode
+        const result = await fetch('https://api.stripe.com/v1/test_helpers/issuing/fund_balance', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            amount: Math.round(amount * 100).toString(),
+            currency: currency.toLowerCase()
+          })
+        });
+        
+        if (!result.ok) {
+          throw new Error(`Failed to fund test balance: ${result.status}`);
+        }
+        
+        const data = await result.json();
+        console.log(`Test Issuing balance funded: $${amount} ${currency.toUpperCase()}`);
+        return data;
+      } else {
+        // In production, user would need to transfer funds via bank transfer
+        // For now, log that funding is needed and continue with card creation
+        console.log(`Production mode: $${amount} needed in Issuing balance. User should transfer funds via Dashboard.`);
+        return { 
+          message: 'Production funding required',
+          amount_needed: amount,
+          currency: currency 
+        };
+      }
+    } catch (error) {
+      console.error('Error funding Issuing balance:', error);
+      throw error;
+    }
+  }
+
+  // Check Issuing balance
+  async getIssuingBalance(currency: string = 'usd') {
+    try {
+      const balance = await stripe.balance.retrieve();
+      const issuingBalance = balance.issuing?.available?.find(b => b.currency === currency.toLowerCase());
+      return issuingBalance ? issuingBalance.amount / 100 : 0; // Convert from cents
+    } catch (error) {
+      console.error('Error getting Issuing balance:', error);
+      return 0;
+    }
+  }
 
   // Create cardholder for user
   async createCardholder(user: any) {

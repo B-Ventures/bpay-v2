@@ -261,7 +261,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateUserStripeInfo(userId, stripeCustomerId, "");
       }
 
-      // Step 1: Create cardholder for Stripe Issuing
+      // Step 1: Check and fund Issuing balance if needed
+      const requiredAmount = req.body.spendingLimit || 1000;
+      const currentBalance = await stripeIssuingService.getIssuingBalance();
+      
+      if (currentBalance < requiredAmount) {
+        console.log(`Funding Issuing balance: Current $${currentBalance}, Required $${requiredAmount}`);
+        await stripeIssuingService.fundIssuingBalance(requiredAmount + 100); // Add buffer
+      }
+
+      // Step 2: Create cardholder for Stripe Issuing
       const cardholder = await stripeIssuingService.createCardholder({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -270,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: user.address
       });
 
-      // Step 2: Define spending controls for the bcard
+      // Step 3: Define spending controls for the bcard
       const spendingControls = {
         spending_limits: req.body.spendingLimits || [
           {
@@ -283,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         spending_limits_currency: 'usd'
       };
 
-      // Step 3: Create real virtual card using Stripe Issuing
+      // Step 4: Create real virtual card using Stripe Issuing
       const stripeCard = await stripeIssuingService.createBcard(cardholder.id, spendingControls);
 
       // Step 4: Get card details for display
@@ -739,6 +748,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating payment intent:", error);
       res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+
+  // Test endpoint for Stripe Issuing integration
+  app.post('/api/test-issuing', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { amount = 100 } = req.body;
+      
+      console.log('=== Testing Stripe Issuing Integration ===');
+      
+      // Step 1: Check current balance
+      const currentBalance = await stripeIssuingService.getIssuingBalance();
+      console.log(`Current Issuing balance: $${currentBalance}`);
+      
+      // Step 2: Fund balance if needed
+      if (currentBalance < amount) {
+        console.log(`Funding balance with $${amount + 50}`);
+        await stripeIssuingService.fundIssuingBalance(amount + 50);
+      }
+      
+      // Step 3: Check balance after funding
+      const newBalance = await stripeIssuingService.getIssuingBalance();
+      console.log(`Balance after funding: $${newBalance}`);
+      
+      // Step 4: Create cardholder
+      const user = await storage.getUser(userId);
+      const cardholder = await stripeIssuingService.createCardholder({
+        firstName: user?.firstName || 'Test',
+        lastName: user?.lastName || 'User',
+        email: user?.email || 'test@example.com',
+        phoneNumber: user?.phoneNumber,
+        address: user?.address
+      });
+      
+      // Step 5: Create virtual card
+      const spendingControls = {
+        spending_limits: [
+          {
+            amount: amount * 100,
+            interval: 'monthly' as const
+          }
+        ]
+      };
+      
+      const card = await stripeIssuingService.createBcard(cardholder.id, spendingControls);
+      
+      res.json({
+        success: true,
+        currentBalance,
+        newBalance,
+        cardholder: {
+          id: cardholder.id,
+          name: cardholder.name || cardholder.id
+        },
+        card: {
+          id: card.id,
+          last4: card.last4,
+          status: card.status,
+          type: card.type
+        },
+        message: 'Stripe Issuing integration test completed successfully'
+      });
+      
+    } catch (error) {
+      console.error('Stripe Issuing test failed:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error.message,
+        details: error
+      });
     }
   });
 
