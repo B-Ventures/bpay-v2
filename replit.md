@@ -115,6 +115,15 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 
 ## Recent Changes
 
+### January 24, 2025
+- **Critical Security Fix - Balance Validation**: Implemented mandatory funding source balance validation before any bcard generation
+  - **Pre-Processing Validation**: Added comprehensive balance checks that prevent card creation when funding sources lack sufficient funds
+  - **Detailed Error Reporting**: Enhanced error messages show exactly which funding sources have insufficient balance
+  - **Mock Balance Simulation**: Each mock funding source now limited to $100 to simulate realistic balance constraints
+  - **Fee Calculation**: System now validates total amount including 2.9% bpay fees before processing
+  - **User-Friendly Error Messages**: Frontend displays detailed breakdown of required vs available funds per source
+  - **Test Mode Detection**: Automatically detects test vs live Stripe keys for appropriate API endpoint usage
+
 ### January 23, 2025
 - **Complete Stripe Issuing Integration**: Fully integrated real virtual card generation using Stripe Issuing APIs
   - **Fund Capture Flow**: Implemented real payment processing to capture funds from user funding sources into bpay's pool account

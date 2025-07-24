@@ -96,12 +96,34 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
       });
       onPaymentSuccess?.(result);
     },
-    onError: (error) => {
-      toast({
-        title: "Payment Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      // Check if this is an insufficient funds error
+      if (error.message?.includes("Insufficient funds")) {
+        const errorData = error.details || {};
+        const insufficientSources = errorData.insufficientSources || [];
+        
+        // Create detailed error message
+        let errorMessage = `Insufficient funds: Need $${errorData.totalRequired?.toFixed(2) || amount} but only have $${errorData.totalAvailable?.toFixed(2) || '0'}`;
+        
+        if (insufficientSources.length > 0) {
+          errorMessage += `\n\nFunding sources with insufficient balance:`;
+          insufficientSources.forEach((source: any) => {
+            errorMessage += `\n• ${source.name}: Need $${source.requiredAmount?.toFixed(2)} but only have $${source.availableBalance}`;
+          });
+        }
+        
+        toast({
+          title: "Insufficient Funds in Funding Sources",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Payment Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     },
   });
 

@@ -261,8 +261,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateUserStripeInfo(userId, stripeCustomerId, "");
       }
 
-      // Step 1: Check and fund Issuing balance if needed
+      // Step 1: Validate spending limit against available funds (if provided)
       const requiredAmount = req.body.spendingLimit || 1000;
+      
+      // Get user's funding sources to validate available balance
+      const fundingSources = await storage.getFundingSourcesByUserId(userId);
+      const totalMockBalance = fundingSources
+        .filter(fs => fs.stripePaymentMethodId?.startsWith('pm_mock_'))
+        .length * 100; // Each mock source has $100
+      
+      if (req.body.spendingLimit && totalMockBalance < requiredAmount) {
+        return res.status(400).json({
+          message: "Insufficient funds to create bcard with requested spending limit",
+          requestedLimit: requiredAmount,
+          availableBalance: totalMockBalance,
+          fundingSources: fundingSources.length
+        });
+      }
+      
+      // Step 2: Check and fund Issuing balance if needed
       const currentBalance = await stripeIssuingService.getIssuingBalance();
       
       if (currentBalance < requiredAmount) {
@@ -588,7 +605,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalFees = totalAmount * feePercentage;
       const totalWithFees = totalAmount + totalFees;
 
-      // Step 1: Capture funds from user's funding sources into bpay's pool account
+      // Step 1: CRITICAL - Validate funding source balances BEFORE any processing
+      console.log(`Validating funding sources for total amount: $${totalWithFees.toFixed(2)} (including $${totalFees.toFixed(2)} fees)`);
+      
+      const balanceValidationResults = [];
+      let totalAvailableBalance = 0;
+      
+      for (const split of splits) {
+        const splitAmount = (totalWithFees * split.percentage) / 100;
+        
+        // Check if this is a mock payment method (has mock balance)
+        if (split.stripePaymentMethodId.startsWith('pm_mock_')) {
+          // For mock payment methods, we simulate a $100 balance limit
+          const mockBalance = 100;
+          balanceValidationResults.push({
+            fundingSourceId: split.fundingSourceId,
+            name: split.name,
+            requiredAmount: splitAmount,
+            availableBalance: mockBalance,
+            sufficient: mockBalance >= splitAmount
+          });
+          totalAvailableBalance += Math.min(mockBalance, splitAmount);
+        } else {
+          // For real payment methods, we can't check balance directly through Stripe
+          // In production, you'd integrate with bank APIs or require user input
+          console.log(`Warning: Cannot validate balance for real payment method ${split.stripePaymentMethodId}`);
+          balanceValidationResults.push({
+            fundingSourceId: split.fundingSourceId,
+            name: split.name,
+            requiredAmount: splitAmount,
+            availableBalance: 'unknown',
+            sufficient: 'unknown'
+          });
+        }
+      }
+      
+      // Check if we have sufficient funds from mock payment methods
+      const insufficientFunds = balanceValidationResults.filter(result => result.sufficient === false);
+      
+      if (insufficientFunds.length > 0) {
+        return res.status(400).json({
+          message: "Insufficient funds in funding sources",
+          totalRequired: totalWithFees,
+          totalAvailable: totalAvailableBalance,
+          insufficientSources: insufficientFunds,
+          breakdown: balanceValidationResults
+        });
+      }
+
+      console.log("✓ Funding source validation passed. Proceeding with fund capture...");
+
+      // Step 2: Capture funds from user's funding sources into bpay's pool account
       const captureResults = [];
       
       for (const split of splits) {
@@ -812,7 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Stripe Issuing integration test completed successfully'
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Stripe Issuing test failed:', error);
       res.status(500).json({ 
         success: false,
