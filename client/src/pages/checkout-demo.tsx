@@ -812,7 +812,52 @@ export default function CheckoutDemo() {
                 </div>
               )}
 
-              {integrationMode === 'addon' && step === 'payment-complete' && generatedBcard && (
+              {step === 'payment-complete' && (
+                <div className="space-y-6">
+                  <div className="text-center space-y-4">
+                    <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
+                    <h3 className="text-xl font-bold text-green-900">Payment Successful!</h3>
+                    <p className="text-gray-600">
+                      Your order has been placed successfully
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Order Total:</span>
+                      <span className="font-medium">${bcardAmount.toFixed(2)}</span>
+                    </div>
+                    {generatedBcard && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Payment Method:</span>
+                        <span className="font-medium">bcard •••• {generatedBcard.number.slice(-4)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <span className="font-medium text-green-600">Confirmed</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={() => {
+                      setStep('checkout');
+                      setGeneratedBcard(null);
+                      setUseBpay(false);
+                      setFundingSplits({});
+                      toast({
+                        title: "Ready for Next Order",
+                        description: "You can place another order anytime.",
+                      });
+                    }}
+                    className="w-full"
+                  >
+                    Place Another Order
+                  </Button>
+                </div>
+              )}
+
+              {integrationMode === 'addon' && step === 'payment-complete' && generatedBcard && false && (
                 <div className="space-y-6">
                   <div className="text-center space-y-4">
                     <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
