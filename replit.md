@@ -125,6 +125,9 @@ Payment processing: Implement Stripe Issuing for card generation in production m
   - **Dual Integration Demo**: Clear distinction between addon (embedded) and banner (overlay) integration approaches
   - **Natural Checkout Experience**: Fixed banner mode to behave like normal checkout - removed special "bcard Ready!" messages and styling
   - **Correct Pricing**: Fixed checkout demo pricing calculations to match subtotal ($2,277.00 + $182.16 tax = $2,459.16 total)
+  - **Core Feature Alignment**: Updated demo modes to use identical logic as production features for validation, fee calculation, and balance checking
+  - **Realistic Demo Pricing**: Reduced demo prices to $145.77 total for practical testing with $300 total funding source balance
+  - **Proper Payment Handoff**: Fixed addon mode to properly hand off bcard details to merchant checkout form instead of processing internally
 
 ### January 24, 2025
 - **Unified bcard Creation Flow**: Successfully consolidated two separate bcard creation interfaces into single comprehensive process

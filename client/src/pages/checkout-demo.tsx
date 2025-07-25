@@ -43,7 +43,7 @@ export default function CheckoutDemo() {
   const [processingStep, setProcessingStep] = useState(0);
   const [generatedBcard, setGeneratedBcard] = useState<BcardDetails | null>(null);
   
-  // Mock funding sources
+  // Mock funding sources (same structure as core features)
   const fundingSources: FundingSource[] = [
     { id: 1, name: "Chase Freedom", type: "credit_card", last4: "4242", balance: "100.00" },
     { id: 2, name: "Bank of America", type: "debit_card", last4: "5678", balance: "100.00" },
@@ -71,6 +71,7 @@ export default function CheckoutDemo() {
   };
 
   const handleProcessBcard = async () => {
+    // Use same validation logic as core CreateBcardModal
     if (Math.abs(totalAllocated - 100) > 0.01) {
       toast({
         title: "Invalid Split",
@@ -80,13 +81,49 @@ export default function CheckoutDemo() {
       return;
     }
 
+    // Check if funding sources have sufficient balance (same as core feature)
+    const insufficientSources = Object.entries(fundingSplits)
+      .filter(([_, percent]) => percent > 0)
+      .map(([sourceId, percent]) => {
+        const source = fundingSources.find(s => s.id === parseInt(sourceId));
+        const requiredAmount = fundingAmounts[parseInt(sourceId)];
+        const availableBalance = parseFloat(source?.balance || '0');
+        return {
+          sourceId: parseInt(sourceId),
+          sourceName: source?.name || 'Unknown',
+          required: requiredAmount,
+          available: availableBalance,
+          insufficient: requiredAmount > availableBalance
+        };
+      })
+      .filter(s => s.insufficient);
+
+    if (insufficientSources.length > 0) {
+      const details = insufficientSources.map(s => 
+        `${s.sourceName}: needs $${s.required.toFixed(2)}, has $${s.available.toFixed(2)}`
+      ).join('; ');
+      toast({
+        title: "Insufficient Funds",
+        description: `Some funding sources don't have enough balance. ${details}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setStep('processing');
     
-    // Simulate processing steps
+    // Dynamic processing steps based on actual selected funding sources
+    const selectedSources = Object.entries(fundingSplits)
+      .filter(([_, percent]) => percent > 0)
+      .map(([sourceId, _]) => {
+        const source = fundingSources.find(s => s.id === parseInt(sourceId));
+        const amount = fundingAmounts[parseInt(sourceId)];
+        return { name: source?.name || 'Unknown', amount };
+      });
+
     const steps = [
       "Validating funding sources...",
-      "Processing Chase Freedom ($50.17)...",
-      "Processing Bank of America ($38.41)...", 
+      ...selectedSources.map(s => `Processing ${s.name} ($${s.amount.toFixed(2)})...`),
       "Generating secure bcard...",
       "Finalizing card details..."
     ];
@@ -96,7 +133,7 @@ export default function CheckoutDemo() {
       await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    // Generate mock bcard details
+    // Generate bcard details (same format as core feature)
     setGeneratedBcard({
       number: "4532 1234 5678 9012",
       expiry: "12/27",
