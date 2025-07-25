@@ -605,17 +605,16 @@ export default function CheckoutDemo() {
                         <Button 
                           className="w-full"
                           onClick={() => {
-                            if (generatedBcard) {
-                              setStep('payment-complete');
-                              toast({
-                                title: "Payment Successful!",
-                                description: "Your order has been placed using your bcard.",
-                              });
-                            }
+                            // Merchant's payment gateway processes the payment
+                            setStep('payment-complete');
+                            toast({
+                              title: "Payment Processed!",
+                              description: "Your order has been processed by the merchant.",
+                            });
                           }}
-                          disabled={!generatedBcard}
+                          disabled={integrationMode === 'addon' && useBpay && !generatedBcard}
                         >
-                          {generatedBcard ? 'Complete Purchase with bcard' : 'Complete Purchase'}
+                          {integrationMode === 'addon' && useBpay && generatedBcard ? 'Process Payment with bcard' : 'Process Payment'}
                         </Button>
                       </div>
                     )
@@ -805,8 +804,18 @@ export default function CheckoutDemo() {
                     </div>
                   </div>
 
-                  <Button onClick={handleUseBcard} className="w-full">
-                    Use This Card for Payment
+                  <Button 
+                    onClick={() => {
+                      // Populate the merchant's checkout form with bcard details
+                      setStep('checkout');
+                      toast({
+                        title: "bcard Details Added",
+                        description: "Your card details have been added to the checkout form.",
+                      });
+                    }} 
+                    className="w-full"
+                  >
+                    Add to Checkout Form
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
