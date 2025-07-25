@@ -12,7 +12,8 @@ import Home from "@/pages/home";
 import MerchantPortal from "@/pages/merchant-portal";
 import AdminPanel from "@/pages/admin-panel";
 import PaymentDemo from "@/pages/payment-demo";
-import CheckoutDemo from "@/pages/checkout-demo";
+import AddonCheckoutDemo from "@/pages/addon-checkout-demo";
+import BannerCheckoutDemo from "@/pages/banner-checkout-demo";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,7 +22,8 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/payment-demo" component={PaymentDemo} />
-      <Route path="/checkout-demo" component={CheckoutDemo} />
+      <Route path="/addon-checkout-demo" component={AddonCheckoutDemo} />
+      <Route path="/banner-checkout-demo" component={BannerCheckoutDemo} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />

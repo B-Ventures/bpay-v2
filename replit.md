@@ -116,6 +116,11 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 ## Recent Changes
 
 ### January 25, 2025
+- **Split Checkout Demo Pages**: Created separate demo pages with distinct URLs for different integration modes
+  - **Addon Checkout Demo** (`/addon-checkout-demo`): Shows bpay integrated as embedded component within merchant checkout
+  - **Banner Checkout Demo** (`/banner-checkout-demo`): Shows bpay operating as browser extension banner overlay
+  - **URL-Based Differentiation**: Users can now access specific integration modes directly via URLs
+  - **Mode-Specific UX**: Each demo clearly shows the distinct user experience for addon vs extension integration
 - **Popup Profile Interface for Addon Mode**: Implemented comprehensive popup-style profile interface for seamless addon integration
   - **ProfilePopup Component**: Created dedicated popup component with full profile viewing and editing capabilities
   - **Integrated User Menu**: Profile access through dashboard user menu with proper authentication handling
