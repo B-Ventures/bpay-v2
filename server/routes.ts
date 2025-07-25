@@ -237,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (cards.length === 0) {
         const sampleCard = {
           userId,
-          name: "bpay Virtual Card",
+          name: "bpay bcard",
           balance: "1000.00",
           cardNumber: `4532${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`,
           expiryMonth: 12,

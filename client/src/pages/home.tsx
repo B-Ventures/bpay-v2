@@ -10,9 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ProfilePopup from "@/components/profile/profile-popup";
 import Overview from "@/components/dashboard/overview";
 import FundingSources from "@/components/dashboard/funding-sources";
-import VirtualCards from "@/components/dashboard/virtual-cards";
+import Bcards from "@/components/dashboard/virtual-cards";
 import Transactions from "@/components/dashboard/transactions";
 import Settings from "@/components/dashboard/settings";
 import DemoModeToggle from "@/components/ui/demo-mode-toggle";
@@ -21,11 +22,12 @@ export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
 
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "funding", label: "Funding Sources" },
-    { id: "virtual-cards", label: "Virtual Cards" },
+    { id: "virtual-cards", label: "bcards" },
     { id: "transactions", label: "Transactions" },
     { id: "settings", label: "Settings" },
   ];
@@ -37,7 +39,7 @@ export default function Home() {
       case "funding":
         return <FundingSources />;
       case "virtual-cards":
-        return <VirtualCards />;
+        return <Bcards />;
       case "transactions":
         return <Transactions />;
       case "settings":
@@ -67,14 +69,14 @@ export default function Home() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
                     <img 
-                      src={user?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
+                      src={(user as any)?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
                       alt="Profile" 
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      {user?.firstName && user?.lastName 
-                        ? `${user.firstName} ${user.lastName}`
-                        : user?.email?.split('@')[0] || 'User'
+                      {(user as any)?.firstName && (user as any)?.lastName 
+                        ? `${(user as any).firstName} ${(user as any).lastName}`
+                        : (user as any)?.email?.split('@')[0] || 'User'
                       }
                     </span>
                     <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -82,12 +84,12 @@ export default function Home() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{user?.email}</p>
+                    <p className="text-sm font-medium">{(user as any)?.email}</p>
                     <p className="text-xs text-gray-500">bpay Account</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => setLocation('/profile')}
+                    onClick={() => setShowProfilePopup(true)}
                     className="cursor-pointer"
                   >
                     <User className="mr-2 h-4 w-4" />
@@ -136,6 +138,12 @@ export default function Home() {
         {/* Tab Content */}
         {renderTabContent()}
       </div>
+
+      {/* Profile Popup */}
+      <ProfilePopup 
+        isOpen={showProfilePopup}
+        onClose={() => setShowProfilePopup(false)}
+      />
     </div>
   );
 }

@@ -54,7 +54,7 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
-  const [step, setStep] = useState<'guide' | 'welcome' | 'profile' | 'funding' | 'complete'>('guide');
+  const [step, setStep] = useState<'guide' | 'auth' | 'profile' | 'funding' | 'complete'>('guide');
   const [profile, setProfile] = useState<UserProfile>({
     address: {
       line1: '',
@@ -174,7 +174,7 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
   const getStepProgress = () => {
     switch (step) {
       case 'guide': return 20;
-      case 'welcome': return 40;
+      case 'auth': return 40;
       case 'profile': return 60;
       case 'funding': return 80;
       case 'complete': return 100;
@@ -200,10 +200,14 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
                 <Badge variant="secondary" className="text-xs">Extension</Badge>
               )}
             </div>
-            <Progress value={getStepProgress()} className="w-full" />
-            <p className="text-sm text-gray-600">
-              Step {getStepProgress() / 20} of 5 - Complete your account setup
-            </p>
+            {step !== 'guide' && step !== 'auth' && (
+              <>
+                <Progress value={getStepProgress()} className="w-full" />
+                <p className="text-sm text-gray-600">
+                  Complete your account setup
+                </p>
+              </>
+            )}
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -214,51 +218,66 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
                   if (user) {
                     setStep('profile');
                   } else {
-                    // Redirect to login for new users
-                    window.location.href = "/api/login";
+                    setStep('auth');
                   }
                 }}
               />
             )}
 
-            {step === 'welcome' && (
-              <div className="space-y-4 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Star className="h-8 w-8 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Get Started with Smart Payments</h3>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Split any payment across multiple funding sources. No single card gets maxed out.
+            {step === 'auth' && (
+              <div className="space-y-6 text-center">
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-900">Join bpay</h3>
+                  <p className="text-gray-600">
+                    Choose how you'd like to get started with your bpay account
                   </p>
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <CreditCard className="h-6 w-6 text-blue-600 mx-auto mb-1" />
-                    <p className="text-xs text-gray-600">Multiple<br/>Cards</p>
+                
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => window.location.href = "/api/login"}
+                    className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] text-white"
+                    size="lg"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="bg-white px-2 text-gray-500">or</span>
+                    </div>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <Shield className="h-6 w-6 text-green-600 mx-auto mb-1" />
-                    <p className="text-xs text-gray-600">Secure<br/>Processing</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <Zap className="h-6 w-6 text-purple-600 mx-auto mb-1" />
-                    <p className="text-xs text-gray-600">Instant<br/>Setup</p>
-                  </div>
+                  
+                  <Button 
+                    onClick={() => window.location.href = "/api/login"}
+                    variant="outline"
+                    className="w-full border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,65%)] hover:text-white"
+                    size="lg"
+                  >
+                    <Star className="h-4 w-4 mr-2" />
+                    Create Account
+                  </Button>
                 </div>
-                <Button onClick={() => setStep('profile')} className="w-full">
-                  Create My Account
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                
+                <div className="text-xs text-gray-500 space-y-1">
+                  <p>By continuing, you agree to our Terms of Service</p>
+                  <p>and Privacy Policy</p>
+                </div>
               </div>
             )}
+
+
 
             {step === 'profile' && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
                   <User className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold">Complete Your Profile</h3>
-                  <p className="text-sm text-gray-600">Required for secure virtual card generation</p>
+                  <p className="text-sm text-gray-600">Required for secure bcard generation</p>
                 </div>
 
                 <div>

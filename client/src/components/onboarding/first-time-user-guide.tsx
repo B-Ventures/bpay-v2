@@ -23,18 +23,18 @@ export default function FirstTimeUserGuide({ integrationMode, onGetStarted }: Fi
 
   const steps = [
     {
-      title: "Welcome to Smart Payments",
+      title: "Welcome to bpay",
       content: "Split any payment across multiple funding sources. Never max out a single card again.",
       icon: <Star className="h-8 w-8 text-yellow-500" />
     },
     {
       title: "How It Works",
-      content: "Add your cards, set percentages, and bpay automatically creates secure virtual cards for each purchase.",
+      content: "Add your cards, set percentages, and bpay automatically creates secure bcards for each purchase.",
       icon: <CreditCard className="h-8 w-8 text-blue-500" />
     },
     {
       title: "Built for Security",
-      content: "Your real card numbers stay private. Merchants only see secure virtual card details.",
+      content: "Your real card numbers stay private. Merchants only see secure bcard details.",
       icon: <Shield className="h-8 w-8 text-green-500" />
     }
   ];
@@ -44,7 +44,7 @@ export default function FirstTimeUserGuide({ integrationMode, onGetStarted }: Fi
     "Maximize rewards across multiple cards", 
     "Keep your real card numbers private",
     "Track spending across all sources",
-    "Instant virtual card generation"
+    "Instant bcard generation"
   ];
 
   return (
@@ -59,7 +59,7 @@ export default function FirstTimeUserGuide({ integrationMode, onGetStarted }: Fi
           )}
         </div>
         <p className="text-gray-600">
-          Let's set up your account for smarter payment splitting
+          Let's set up your account for this new smart payment approach
         </p>
       </div>
 

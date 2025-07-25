@@ -116,6 +116,26 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 ## Recent Changes
 
 ### January 25, 2025
+- **Popup Profile Interface for Addon Mode**: Implemented comprehensive popup-style profile interface for seamless addon integration
+  - **ProfilePopup Component**: Created dedicated popup component with full profile viewing and editing capabilities
+  - **Integrated User Menu**: Profile access through dashboard user menu with proper authentication handling
+  - **Complete Profile Management**: Phone number, address, and account information editing with validation
+  - **Responsive Design**: Mobile-friendly popup interface with proper form controls and navigation
+  - **Authentication Flow**: Secure profile updates with backend validation and proper error handling
+
+- **Complete Terminology Standardization**: Systematically replaced all "virtual cards" references with "bcard" throughout the codebase
+  - **UI Components**: Updated all dashboard components, navigation, and user interfaces to use "bcard" terminology
+  - **Backend Systems**: Modified API responses and database handling to reflect bcard naming convention
+  - **User Communications**: Replaced technical terms with user-friendly "bcard" language across the platform
+  - **Consistent Branding**: Ensured all references align with bpay brand identity and user preferences
+
+- **Enhanced Registration Flow**: Improved onboarding experience with proper authentication options
+  - **Removed Step Counter**: Replaced "1 out of 5 steps" with clean login/signup choice interface
+  - **Clear Authentication Options**: Added distinct "Sign In" and "Create Account" buttons with proper styling
+  - **User-Friendly Language**: Replaced "smart payments" with "this new smart payment approach" to clarify bpay concept
+  - **Streamlined Flow**: Simplified registration process while maintaining all required functionality
+  - **Terms and Privacy**: Added proper legal acknowledgment for user consent during registration
+
 - **Comprehensive User Registration System**: Implemented complete onboarding flow for addon and extension integration
   - **First-Time User Guide**: Step-by-step introduction explaining bpay benefits and functionality
   - **Smart Registration Flow**: 5-step process (guide → welcome → profile → funding → complete)

@@ -6,11 +6,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import CreateBcardModal from "@/components/bcard/create-bcard-modal";
 
-export default function VirtualCards() {
+export default function Bcards() {
   const { user } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const { data: virtualCards = [] } = useQuery({
+  const { data: bcards = [] } = useQuery<any[]>({
     queryKey: ["/api/virtual-cards"],
     enabled: !!user,
   });
@@ -31,7 +31,7 @@ export default function VirtualCards() {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Virtual Cards</CardTitle>
+            <CardTitle>bcards</CardTitle>
             <Button 
               onClick={() => setShowCreateModal(true)}
               className="bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)]"
@@ -42,7 +42,7 @@ export default function VirtualCards() {
           </div>
         </CardHeader>
         <CardContent>
-          {virtualCards.length === 0 ? (
+          {bcards.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <CreditCard className="h-8 w-8" />
@@ -58,11 +58,11 @@ export default function VirtualCards() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {virtualCards.map((card: any, index: number) => (
+              {bcards.map((card: any, index: number) => (
                 <div key={card.id} className={`bg-gradient-to-br ${getCardGradient(index)} rounded-xl p-6 text-white`}>
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <p className="text-sm opacity-80">Virtual Card</p>
+                      <p className="text-sm opacity-80">bcard</p>
                       <p className="font-semibold">{card.name}</p>
                     </div>
                     <CreditCard className="h-6 w-6 opacity-80" />
