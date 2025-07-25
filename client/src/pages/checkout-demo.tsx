@@ -36,6 +36,7 @@ export default function CheckoutDemo() {
   const { toast } = useToast();
   const [step, setStep] = useState<'checkout' | 'bpay-split' | 'processing' | 'card-ready' | 'payment-complete'>('checkout');
   const [useBpay, setUseBpay] = useState(false);
+  const [integrationMode, setIntegrationMode] = useState<'addon' | 'banner'>('addon');
   const [bcardAmount] = useState(85.99);
   const [fundingSplits, setFundingSplits] = useState<Record<number, number>>({});
   const [processingStep, setProcessingStep] = useState(0);
@@ -114,13 +115,73 @@ export default function CheckoutDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Merchant Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">TechStore Checkout</h1>
-          <p className="text-gray-600">Complete your purchase securely</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* bpay Global Banner (when banner mode and bpay enabled) */}
+      {integrationMode === 'banner' && useBpay && step === 'checkout' && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 shadow-lg">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Zap className="h-6 w-6" />
+                <span className="text-xl font-bold">bpay</span>
+              </div>
+              <div className="hidden md:block">
+                <span className="text-sm opacity-90">
+                  Split your ${bcardAmount.toFixed(2)} payment across multiple cards • No single card gets maxed out
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="secondary" 
+                size="sm"
+                className="bg-white text-blue-600 hover:bg-blue-50"
+                onClick={() => setStep('bpay-split')}
+              >
+                Configure Split
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-white hover:bg-white/20"
+                onClick={() => setUseBpay(false)}
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
         </div>
+      )}
+
+      <div className={`${integrationMode === 'banner' && useBpay && step === 'checkout' ? 'pt-20' : 'pt-8'} pb-8`}>
+        <div className="max-w-4xl mx-auto px-4">
+          {/* Integration Mode Toggle */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 bg-white p-1 rounded-lg border shadow-sm">
+              <Button
+                variant={integrationMode === 'addon' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setIntegrationMode('addon')}
+                className="text-xs"
+              >
+                Addon Integration
+              </Button>
+              <Button
+                variant={integrationMode === 'banner' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setIntegrationMode('banner')}
+                className="text-xs"
+              >
+                Banner Integration
+              </Button>
+            </div>
+          </div>
+
+          {/* Merchant Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">TechStore Checkout</h1>
+            <p className="text-gray-600">Complete your purchase securely</p>
+          </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Summary */}
@@ -170,8 +231,8 @@ export default function CheckoutDemo() {
             <CardContent className="space-y-6">
               {step === 'checkout' && (
                 <>
-                  {/* bpay Banner */}
-                  {!useBpay && (
+                  {/* bpay Addon Banner (only shown in addon mode) */}
+                  {integrationMode === 'addon' && !useBpay && (
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-3 mb-2">
                         <Zap className="h-5 w-5" />
@@ -193,11 +254,34 @@ export default function CheckoutDemo() {
                     </div>
                   )}
 
+                  {/* Banner Mode bpay Activation */}
+                  {integrationMode === 'banner' && !useBpay && (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-blue-900">Want to split this payment?</p>
+                          <p className="text-sm text-blue-700">Click the bpay banner above to split across multiple cards</p>
+                        </div>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUseBpay(true)}
+                          className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                        >
+                          Enable bpay
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {useBpay ? (
                     <div className="space-y-4">
                       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                         <h3 className="font-semibold text-blue-900 mb-2">bpay Payment Split</h3>
                         <p className="text-sm text-blue-700">Choose how to split this ${bcardAmount.toFixed(2)} payment</p>
+                        <div className="text-xs text-blue-600 mt-2">
+                          Integration mode: <span className="font-medium capitalize">{integrationMode}</span>
+                        </div>
                       </div>
                       <Button 
                         onClick={() => setStep('bpay-split')}
@@ -468,22 +552,31 @@ export default function CheckoutDemo() {
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={() => {
-                      setStep('checkout');
-                      setUseBpay(false);
-                      setFundingSplits({});
-                      setGeneratedBcard(null);
-                    }}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Start New Payment
-                  </Button>
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => {
+                        setStep('checkout');
+                        setUseBpay(false);
+                        setFundingSplits({});
+                        setGeneratedBcard(null);
+                      }}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      Start New Payment
+                    </Button>
+
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">
+                        Paid using {integrationMode} integration
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>
