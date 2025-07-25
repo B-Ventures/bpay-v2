@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CreditCard, TrendingUp, Clock, Plus, Wallet, Zap } from "lucide-react";
+import { CreditCard, TrendingUp, Clock, Plus, Wallet, Zap, Play, ShoppingCart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -117,10 +117,22 @@ export default function Overview() {
                   variant="ghost"
                 >
                   <div className="flex items-center">
-                    <Zap className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3" />
+                    <Play className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3" />
                     <span className="font-medium">Payment Demo</span>
                   </div>
                   <span className="text-[hsl(186,94%,44%)]">→</span>
+                </Button>
+              </Link>
+              <Link href="/checkout-demo">
+                <Button 
+                  className="w-full flex items-center justify-between p-4 bg-[hsl(20,94%,60%)]/5 hover:bg-[hsl(20,94%,60%)]/10 h-auto"
+                  variant="ghost"
+                >
+                  <div className="flex items-center">
+                    <ShoppingCart className="text-[hsl(20,94%,60%)] h-5 w-5 mr-3" />
+                    <span className="font-medium">Checkout Demo</span>
+                  </div>
+                  <span className="text-[hsl(20,94%,60%)]">→</span>
                 </Button>
               </Link>
             </div>
