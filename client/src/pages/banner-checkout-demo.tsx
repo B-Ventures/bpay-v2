@@ -5,22 +5,116 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import RegistrationFlow from "@/components/auth/registration-flow";
+import PaymentSplitter from "@/components/payment/payment-splitter";
 import { useAuth } from "@/hooks/useAuth";
-import { ShoppingCart, CreditCard, Lock, Zap, X } from "lucide-react";
+import { ShoppingCart, CreditCard, Lock, Zap, X, ArrowLeft } from "lucide-react";
+
+type CheckoutStep = 'checkout' | 'bpay-flow' | 'complete';
 
 export default function BannerCheckoutDemo() {
   const { user } = useAuth();
   const [showRegistration, setShowRegistration] = useState(false);
   const [showBpayBanner, setShowBpayBanner] = useState(true);
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>('checkout');
+  const [paymentResult, setPaymentResult] = useState<any>(null);
 
   const handleTryBpay = () => {
     if (!user) {
       setShowRegistration(true);
     } else {
-      // User is logged in, proceed with banner-mode payment flow
-      window.location.href = "/payment-demo?mode=banner";
+      // User is logged in, proceed with bpay flow within banner context
+      setCurrentStep('bpay-flow');
     }
   };
+
+  const handleBpayComplete = (result: any) => {
+    setPaymentResult(result);
+    setCurrentStep('complete');
+  };
+
+  const handleBackToCheckout = () => {
+    setCurrentStep('checkout');
+    setPaymentResult(null);
+  };
+
+  if (currentStep === 'bpay-flow') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header with back button */}
+        <header className="bg-blue-600 text-white py-3 px-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToCheckout}
+                className="text-white hover:bg-blue-500"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Merchant
+              </Button>
+              <Separator orientation="vertical" className="h-6 bg-blue-400" />
+              <Zap className="h-5 w-5" />
+              <span className="font-semibold">bpay Extension Payment Flow</span>
+              <Badge variant="secondary" className="bg-blue-500 text-white text-xs">Extension Mode</Badge>
+            </div>
+          </div>
+        </header>
+
+        {/* bpay Payment Flow */}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <PaymentSplitter
+            amount={145.77}
+            merchant="TechStore"
+            onPaymentComplete={handleBpayComplete}
+            integrationMode="banner"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (currentStep === 'complete') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-green-600 text-white py-4 px-4">
+          <div className="max-w-6xl mx-auto flex items-center gap-3">
+            <Zap className="h-6 w-6" />
+            <h1 className="text-xl font-bold">bpay Payment Complete</h1>
+            <Badge variant="secondary" className="bg-green-500 text-white text-xs">Extension Mode</Badge>
+          </div>
+        </header>
+
+        <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CreditCard className="h-8 w-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Payment Successful!</h2>
+            <p className="text-gray-600 mb-6">
+              Your payment of $145.77 has been processed using bpay extension's smart payment splitting.
+            </p>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={handleBackToCheckout}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                Return to Merchant Site
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.href = '/'}
+                className="w-full"
+              >
+                Go to bpay Dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,26 +1,123 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";  
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import RegistrationFlow from "@/components/auth/registration-flow";
+import PaymentSplitter from "@/components/payment/payment-splitter";
 import { useAuth } from "@/hooks/useAuth";
-import { ShoppingCart, CreditCard, Lock, Zap } from "lucide-react";
+import { ShoppingCart, CreditCard, Lock, Zap, ArrowLeft } from "lucide-react";
+
+type CheckoutStep = 'checkout' | 'bpay-flow' | 'complete';
 
 export default function AddonCheckoutDemo() {
   const { user } = useAuth();
   const [showRegistration, setShowRegistration] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("bpay");
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>('checkout');
+  const [paymentResult, setPaymentResult] = useState<any>(null);
 
   const handleTryBpay = () => {
     if (!user) {
       setShowRegistration(true);
     } else {
-      // User is logged in, proceed with addon-mode payment flow
-      window.location.href = "/payment-demo?mode=addon";
+      // User is logged in, proceed with bpay flow within addon context
+      setCurrentStep('bpay-flow');
     }
   };
+
+  const handleBpayComplete = (result: any) => {
+    setPaymentResult(result);
+    setCurrentStep('complete');
+  };
+
+  const handleBackToCheckout = () => {
+    setCurrentStep('checkout');
+    setPaymentResult(null);
+  };
+
+  if (currentStep === 'bpay-flow') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header with back button */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToCheckout}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Checkout
+                </Button>
+                <Separator orientation="vertical" className="h-6" />
+                <Zap className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold">bpay Payment Flow</span>
+                <Badge variant="secondary" className="text-xs">Addon Mode</Badge>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* bpay Payment Flow */}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <PaymentSplitter
+            amount={145.77}
+            merchant="TechStore"
+            onPaymentComplete={handleBpayComplete}
+            integrationMode="addon"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (currentStep === 'complete') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <ShoppingCart className="h-6 w-6 text-green-600" />
+              <h1 className="text-xl font-bold text-gray-900">Payment Complete</h1>
+              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">Success</Badge>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CreditCard className="h-8 w-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Payment Successful!</h2>
+            <p className="text-gray-600 mb-6">
+              Your payment of $145.77 has been processed using bpay's smart payment splitting.
+            </p>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={handleBackToCheckout}
+                className="w-full"
+              >
+                Make Another Purchase
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.href = '/'}
+                className="w-full"
+              >
+                Go to Dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
