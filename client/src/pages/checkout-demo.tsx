@@ -37,6 +37,7 @@ export default function CheckoutDemo() {
   const [step, setStep] = useState<'checkout' | 'bpay-split' | 'processing' | 'card-ready' | 'payment-complete'>('checkout');
   const [useBpay, setUseBpay] = useState(false);
   const [integrationMode, setIntegrationMode] = useState<'addon' | 'banner'>('addon');
+  const [bannerStep, setBannerStep] = useState<'welcome' | 'active'>('welcome');
   const [bcardAmount] = useState(85.99);
   const [fundingSplits, setFundingSplits] = useState<Record<number, number>>({});
   const [processingStep, setProcessingStep] = useState(0);
@@ -126,34 +127,67 @@ export default function CheckoutDemo() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* bpay Global Extension Banner */}
+      {/* bpay Extension Banner (only in banner mode) */}
       {integrationMode === 'banner' && useBpay && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-          <div className="max-w-7xl mx-auto">
-            {/* Banner Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/20">
-              <div className="flex items-center gap-3">
-                <Zap className="h-6 w-6" />
-                <span className="text-xl font-bold">bpay</span>
-                <Badge className="bg-white/20 text-white border-white/30">Extension</Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm opacity-90">
-                  Split ${bcardAmount.toFixed(2)} payment
-                </span>
+          <div className="max-w-4xl mx-auto px-4 py-3">
+            {bannerStep === 'welcome' ? (
+              // Welcome/Introduction Banner
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    <span className="font-semibold text-sm">Pay smarter with bpay</span>
+                    <Badge variant="secondary" className="bg-white/20 text-white text-xs">
+                      New
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                    onClick={() => setUseBpay(false)}
+                  >
+                    ✕
+                  </Button>
+                </div>
+                <p className="text-sm opacity-90 max-w-md">
+                  Split this payment across multiple funding sources. No single card gets maxed out.
+                </p>
                 <Button 
-                  variant="ghost" 
+                  onClick={() => setBannerStep('active')}
                   size="sm"
-                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                  onClick={() => setUseBpay(false)}
+                  className="bg-white text-blue-600 hover:bg-blue-50 flex items-center gap-2"
                 >
-                  ✕
+                  <Star className="h-4 w-4" />
+                  Try bpay for this payment
                 </Button>
               </div>
-            </div>
+            ) : (
+              // Active bpay Banner with all existing functionality
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Zap className="h-6 w-6" />
+                    <span className="text-xl font-bold">bpay</span>
+                    <Badge className="bg-white/20 text-white border-white/30">Extension</Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm opacity-90">
+                      Split ${bcardAmount.toFixed(2)} payment
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                      onClick={() => setUseBpay(false)}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                </div>
 
-            {/* Banner Content - Changes based on step */}
-            <div className="p-4">
+                {/* Banner Content - Changes based on step */}
               {step === 'checkout' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -337,7 +371,8 @@ export default function CheckoutDemo() {
                   </Button>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -363,7 +398,8 @@ export default function CheckoutDemo() {
                 size="sm"
                 onClick={() => {
                   setIntegrationMode('banner');
-                  setUseBpay(true); // Automatically enable bpay extension in banner mode
+                  setUseBpay(true);
+                  setBannerStep('welcome'); // Start with welcome message
                 }}
                 className="text-xs"
               >
