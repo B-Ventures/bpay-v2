@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { CreditCard, Bell, ChevronDown } from "lucide-react";
+import { CreditCard, Bell, ChevronDown, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Overview from "@/components/dashboard/overview";
 import FundingSources from "@/components/dashboard/funding-sources";
 import VirtualCards from "@/components/dashboard/virtual-cards";
@@ -11,6 +19,7 @@ import DemoModeToggle from "@/components/ui/demo-mode-toggle";
 
 export default function Home() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
 
   const tabs = [
@@ -52,17 +61,48 @@ export default function Home() {
               <Button variant="ghost" size="sm">
                 <Bell className="h-5 w-5" />
               </Button>
-              <div className="flex items-center space-x-2">
-                <img 
-                  src={user?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
-                  alt="Profile" 
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  {user?.firstName} {user?.lastName}
-                </span>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
-              </div>
+              
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
+                    <img 
+                      src={user?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
+                      alt="Profile" 
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      {user?.firstName && user?.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user?.email?.split('@')[0] || 'User'
+                      }
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{user?.email}</p>
+                    <p className="text-xs text-gray-500">bpay Account</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setLocation('/profile')}
+                    className="cursor-pointer"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>View Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => window.location.href = "/api/logout"}
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

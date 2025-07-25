@@ -8,6 +8,7 @@ import { DemoModeProvider } from "@/components/providers/demo-mode-provider";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import Profile from "@/pages/profile";
 import MerchantPortal from "@/pages/merchant-portal";
 import AdminPanel from "@/pages/admin-panel";
 import PaymentDemo from "@/pages/payment-demo";
@@ -27,6 +28,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/profile" component={Profile} />
           <Route path="/merchant-portal" component={MerchantPortal} />
           <Route path="/admin-panel" component={AdminPanel} />
         </>
