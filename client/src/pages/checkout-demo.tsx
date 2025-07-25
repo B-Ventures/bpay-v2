@@ -458,7 +458,7 @@ export default function CheckoutDemo() {
               <CardTitle>Payment Method</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {step === 'checkout' && (
+              {(step === 'checkout' || integrationMode === 'banner') && (
                 <>
                   {/* bpay Addon Banner (only shown in addon mode) */}
                   {integrationMode === 'addon' && !useBpay && (
