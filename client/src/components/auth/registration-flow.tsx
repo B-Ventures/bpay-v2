@@ -185,11 +185,11 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg mx-auto">
-        <Card className="bg-white shadow-xl relative">
-          <CardHeader className="text-center space-y-2">
-            <div className="absolute top-4 right-4">
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
+        <Card className="bg-white shadow-xl relative m-2 sm:m-0">
+          <CardHeader className="text-center space-y-2 pb-4">
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -199,9 +199,9 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
                 ✕
               </Button>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <Zap className="h-6 w-6 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-900">Welcome to bpay</h2>
+            <div className="flex items-center justify-center gap-2 pr-12">
+              <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Welcome to bpay</h2>
               {integrationMode === 'banner' && (
                 <Badge variant="secondary" className="text-xs">Extension</Badge>
               )}
@@ -216,7 +216,7 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
             )}
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-4 sm:pb-6">
             {step === 'guide' && (
               <FirstTimeUserGuide 
                 integrationMode={integrationMode}
@@ -231,10 +231,10 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
             )}
 
             {step === 'auth' && (
-              <div className="space-y-6 text-center">
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-gray-900">Join bpay</h3>
-                  <p className="text-gray-600">
+              <div className="space-y-4 sm:space-y-6 text-center">
+                <div className="space-y-2 sm:space-y-3">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">Join bpay</h3>
+                  <p className="text-sm sm:text-base text-gray-600">
                     Choose how you'd like to get started with your bpay account
                   </p>
                 </div>
@@ -242,8 +242,7 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
                 <div className="space-y-3">
                   <Button 
                     onClick={() => window.location.href = "/api/login"}
-                    className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] text-white"
-                    size="lg"
+                    className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] text-white h-10 sm:h-11"
                   >
                     <User className="h-4 w-4 mr-2" />
                     Sign In
@@ -261,8 +260,7 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
                   <Button 
                     onClick={() => window.location.href = "/api/login"}
                     variant="outline"
-                    className="w-full border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,65%)] hover:text-white"
-                    size="lg"
+                    className="w-full border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,65%)] hover:text-white h-10 sm:h-11"
                   >
                     <Star className="h-4 w-4 mr-2" />
                     Create Account
