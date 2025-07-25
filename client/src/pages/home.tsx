@@ -89,7 +89,11 @@ export default function Home() {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => setShowProfilePopup(true)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Profile popup clicked, setting state to true');
+                      setShowProfilePopup(true);
+                    }}
                     className="cursor-pointer"
                   >
                     <User className="mr-2 h-4 w-4" />

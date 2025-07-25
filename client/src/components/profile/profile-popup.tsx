@@ -110,7 +110,12 @@ export default function ProfilePopup({ isOpen, onClose }: ProfilePopupProps) {
     window.location.href = "/api/logout";
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('ProfilePopup not open, returning null');
+    return null;
+  }
+  
+  console.log('ProfilePopup rendering, isOpen:', isOpen);
 
   if (isLoading) {
     return (
