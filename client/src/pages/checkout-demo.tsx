@@ -38,7 +38,7 @@ export default function CheckoutDemo() {
   const [useBpay, setUseBpay] = useState(false);
   const [integrationMode, setIntegrationMode] = useState<'addon' | 'banner'>('addon');
   const [bannerStep, setBannerStep] = useState<'welcome' | 'active'>('welcome');
-  const [bcardAmount] = useState(2459.16);
+  const [bcardAmount] = useState(145.77);
   const [fundingSplits, setFundingSplits] = useState<Record<number, number>>({});
   const [processingStep, setProcessingStep] = useState(0);
   const [generatedBcard, setGeneratedBcard] = useState<BcardDetails | null>(null);
@@ -420,25 +420,25 @@ export default function CheckoutDemo() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
-                <span>MacBook Pro 14" M3</span>
-                <span>$1,999.00</span>
+                <span>Wireless Headphones</span>
+                <span>$89.99</span>
               </div>
               <div className="flex justify-between">
-                <span>Magic Mouse</span>
-                <span>$79.00</span>
+                <span>Phone Case</span>
+                <span>$24.99</span>
               </div>
               <div className="flex justify-between">
-                <span>AppleCare+</span>
-                <span>$199.00</span>
+                <span>Screen Protector</span>
+                <span>$19.99</span>
               </div>
               <Separator />
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>$2,277.00</span>
+                <span>$134.97</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
-                <span>$182.16</span>
+                <span>$10.80</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
