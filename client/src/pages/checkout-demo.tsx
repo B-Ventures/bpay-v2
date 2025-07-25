@@ -130,7 +130,7 @@ export default function CheckoutDemo() {
       {/* bpay Extension Banner (only in banner mode) */}
       {integrationMode === 'banner' && useBpay && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-          <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="max-w-4xl mx-auto px-4 py-2">
             {bannerStep === 'welcome' ? (
               // Welcome/Introduction Banner
               <div className="space-y-3">
@@ -208,34 +208,24 @@ export default function CheckoutDemo() {
               )}
 
               {step === 'bpay-split' && (
-                <div className="space-y-4">
-                  {/* Fee Summary in Banner */}
-                  <div className="bg-white/10 p-3 rounded border border-white/20">
-                    <div className="grid grid-cols-3 gap-4 text-xs">
-                      <div>
-                        <span className="opacity-75">Amount:</span>
-                        <div className="font-semibold">${bcardAmount.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <span className="opacity-75">bpay Fee:</span>
-                        <div className="font-semibold">+${fees.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <span className="opacity-75">Total:</span>
-                        <div className="font-bold">${totalAmountWithFees.toFixed(2)}</div>
-                      </div>
+                <div className="space-y-2">
+                  {/* Compact Fee Summary */}
+                  <div className="bg-white/10 p-2 rounded border border-white/20">
+                    <div className="flex justify-between text-xs">
+                      <span>${bcardAmount.toFixed(2)} + ${fees.toFixed(2)} fee</span>
+                      <span className="font-semibold">Total: ${totalAmountWithFees.toFixed(2)}</span>
                     </div>
                   </div>
 
-                  {/* Funding Sources Grid in Banner */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Compact Funding Sources */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {fundingSources.map((source) => {
                       const requiredAmount = fundingAmounts[source.id] || 0;
                       const availableBalance = parseFloat(source.balance);
                       const hasInsufficientFunds = requiredAmount > availableBalance && fundingSplits[source.id] > 0;
                       
                       return (
-                        <div key={source.id} className={`bg-white/10 p-3 rounded border ${hasInsufficientFunds ? 'border-red-300' : 'border-white/20'}`}>
+                        <div key={source.id} className={`bg-white/10 p-2 rounded border ${hasInsufficientFunds ? 'border-red-300' : 'border-white/20'}`}>
                           <div className="mb-2">
                             <p className="text-xs font-semibold">{source.name}</p>
                             <p className="text-xs opacity-75">•••• {source.last4}</p>
@@ -377,7 +367,7 @@ export default function CheckoutDemo() {
         </div>
       )}
 
-      <div className={`${integrationMode === 'banner' && useBpay ? 'pt-48 md:pt-32' : 'pt-8'} pb-8`}>
+      <div className={`${integrationMode === 'banner' && useBpay && bannerStep === 'welcome' ? 'pt-24' : integrationMode === 'banner' && useBpay ? 'pt-40 md:pt-32' : 'pt-8'} pb-8`}>
         <div className="max-w-4xl mx-auto px-4">
           {/* Integration Mode Toggle */}
           <div className="text-center mb-6">
@@ -388,6 +378,8 @@ export default function CheckoutDemo() {
                 onClick={() => {
                   setIntegrationMode('addon');
                   setUseBpay(false);
+                  setBannerStep('welcome');
+                  setStep('checkout');
                 }}
                 className="text-xs"
               >
@@ -399,7 +391,8 @@ export default function CheckoutDemo() {
                 onClick={() => {
                   setIntegrationMode('banner');
                   setUseBpay(true);
-                  setBannerStep('welcome'); // Start with welcome message
+                  setBannerStep('welcome');
+                  setStep('checkout'); // Reset to checkout step
                 }}
                 className="text-xs"
               >
