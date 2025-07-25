@@ -115,6 +115,15 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 
 ## Recent Changes
 
+### January 25, 2025
+- **Enhanced Checkout Demo with Browser Extension Experience**: Completely redesigned banner integration to provide true browser extension behavior
+  - **Full-Featured Extension Banner**: All bpay functionality now runs within the fixed top banner, simulating browser extension overlay
+  - **Complete In-Banner Flow**: Fee calculation, funding source selection, percentage splits, processing, and card generation all happen within banner
+  - **Responsive Banner Design**: Compact interface with grid layouts optimized for banner constraints
+  - **Extension-Style Branding**: Added "Extension" badge and professional overlay styling
+  - **Dual Integration Showcase**: Toggle between addon (embedded) and banner (overlay) integration modes
+  - **Real-time Banner Updates**: Banner content dynamically changes based on process step (config → split → processing → ready → complete)
+
 ### January 24, 2025
 - **Unified bcard Creation Flow**: Successfully consolidated two separate bcard creation interfaces into single comprehensive process
   - **Eliminated Duplicate Interfaces**: Removed inconsistent creation approaches between Quick Actions and Virtual Cards tab

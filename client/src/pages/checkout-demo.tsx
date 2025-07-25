@@ -116,44 +116,223 @@ export default function CheckoutDemo() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* bpay Global Banner (when banner mode and bpay enabled) */}
-      {integrationMode === 'banner' && useBpay && step === 'checkout' && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 shadow-lg">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+      {/* bpay Global Extension Banner */}
+      {integrationMode === 'banner' && useBpay && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+          <div className="max-w-7xl mx-auto">
+            {/* Banner Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/20">
+              <div className="flex items-center gap-3">
                 <Zap className="h-6 w-6" />
                 <span className="text-xl font-bold">bpay</span>
+                <Badge className="bg-white/20 text-white border-white/30">Extension</Badge>
               </div>
-              <div className="hidden md:block">
+              <div className="flex items-center gap-2">
                 <span className="text-sm opacity-90">
-                  Split your ${bcardAmount.toFixed(2)} payment across multiple cards • No single card gets maxed out
+                  Split ${bcardAmount.toFixed(2)} payment
                 </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                  onClick={() => setUseBpay(false)}
+                >
+                  ✕
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="secondary" 
-                size="sm"
-                className="bg-white text-blue-600 hover:bg-blue-50"
-                onClick={() => setStep('bpay-split')}
-              >
-                Configure Split
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-white hover:bg-white/20"
-                onClick={() => setUseBpay(false)}
-              >
-                ✕
-              </Button>
+
+            {/* Banner Content - Changes based on step */}
+            <div className="p-4">
+              {step === 'checkout' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-sm">Payment Split Options</h3>
+                    <p className="text-xs opacity-90">Choose funding sources and percentages</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Button 
+                      onClick={() => setStep('bpay-split')}
+                      size="sm"
+                      className="bg-white text-blue-600 hover:bg-blue-50"
+                    >
+                      Configure Payment Split
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {step === 'bpay-split' && (
+                <div className="space-y-4">
+                  {/* Fee Summary in Banner */}
+                  <div className="bg-white/10 p-3 rounded border border-white/20">
+                    <div className="grid grid-cols-3 gap-4 text-xs">
+                      <div>
+                        <span className="opacity-75">Amount:</span>
+                        <div className="font-semibold">${bcardAmount.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <span className="opacity-75">bpay Fee:</span>
+                        <div className="font-semibold">+${fees.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <span className="opacity-75">Total:</span>
+                        <div className="font-bold">${totalAmountWithFees.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Funding Sources Grid in Banner */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {fundingSources.map((source) => {
+                      const requiredAmount = fundingAmounts[source.id] || 0;
+                      const availableBalance = parseFloat(source.balance);
+                      const hasInsufficientFunds = requiredAmount > availableBalance && fundingSplits[source.id] > 0;
+                      
+                      return (
+                        <div key={source.id} className={`bg-white/10 p-3 rounded border ${hasInsufficientFunds ? 'border-red-300' : 'border-white/20'}`}>
+                          <div className="mb-2">
+                            <p className="text-xs font-semibold">{source.name}</p>
+                            <p className="text-xs opacity-75">•••• {source.last4}</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.1"
+                              value={fundingSplits[source.id] || ''}
+                              onChange={(e) => handleSplitChange(source.id, e.target.value)}
+                              placeholder="0%"
+                              className="bg-white/20 border border-white/30 rounded px-2 py-1 text-xs text-white placeholder-white/60"
+                            />
+                            <div className="text-xs">
+                              <span className="opacity-75">$</span>
+                              <span className="font-semibold">{(fundingAmounts[source.id] || 0).toFixed(2)}</span>
+                            </div>
+                          </div>
+                          {hasInsufficientFunds && (
+                            <p className="text-xs text-red-200 mt-1">⚠️ Insufficient funds</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs">
+                      <span className="opacity-75">Allocated: </span>
+                      <span className="font-semibold">{totalAllocated.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setStep('checkout')}
+                        className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={handleProcessBcard}
+                        disabled={Math.abs(totalAllocated - 100) > 0.01}
+                        size="sm"
+                        className="bg-white text-blue-600 hover:bg-blue-50"
+                      >
+                        Generate bcard
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === 'processing' && (
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm font-semibold">Processing Your bcard...</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+                    {[
+                      "Validating sources",
+                      "Processing Chase",
+                      "Processing B of A", 
+                      "Generating card",
+                      "Finalizing"
+                    ].map((step, index) => (
+                      <div key={index} className="flex items-center gap-1">
+                        {index < processingStep ? (
+                          <CheckCircle className="h-3 w-3 text-green-300" />
+                        ) : index === processingStep ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <div className="h-3 w-3 rounded-full border border-white/40" />
+                        )}
+                        <span className={index <= processingStep ? 'opacity-100' : 'opacity-60'}>
+                          {step}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {step === 'card-ready' && generatedBcard && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/10 p-3 rounded border border-white/20">
+                    <div className="text-xs space-y-1">
+                      <div className="font-semibold">Virtual Card Generated</div>
+                      <div className="font-mono text-sm">{generatedBcard.number}</div>
+                      <div className="flex gap-4">
+                        <span>Exp: {generatedBcard.expiry}</span>
+                        <span>CVV: {generatedBcard.cvv}</span>
+                      </div>
+                      <div className="text-green-200">✓ Balance: ${bcardAmount.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <Button 
+                      onClick={handleUseBcard}
+                      size="sm"
+                      className="bg-white text-blue-600 hover:bg-blue-50"
+                    >
+                      Use This Card for Payment
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {step === 'payment-complete' && (
+                <div className="text-center space-y-2">
+                  <div className="flex items-center justify-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-300" />
+                    <span className="font-semibold">Payment Successful!</span>
+                  </div>
+                  <p className="text-xs opacity-90">
+                    Order placed using bcard •••• {generatedBcard?.number.slice(-4)}
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setStep('checkout');
+                      setUseBpay(false);
+                      setFundingSplits({});
+                      setGeneratedBcard(null);
+                    }}
+                    size="sm"
+                    className="bg-white text-blue-600 hover:bg-blue-50"
+                  >
+                    Close Extension
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      <div className={`${integrationMode === 'banner' && useBpay && step === 'checkout' ? 'pt-20' : 'pt-8'} pb-8`}>
+      <div className={`${integrationMode === 'banner' && useBpay ? 'pt-48 md:pt-32' : 'pt-8'} pb-8`}>
         <div className="max-w-4xl mx-auto px-4">
           {/* Integration Mode Toggle */}
           <div className="text-center mb-6">
@@ -260,7 +439,7 @@ export default function CheckoutDemo() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-blue-900">Want to split this payment?</p>
-                          <p className="text-sm text-blue-700">Click the bpay banner above to split across multiple cards</p>
+                          <p className="text-sm text-blue-700">The bpay extension can split this ${bcardAmount.toFixed(2)} payment across multiple cards</p>
                         </div>
                         <Button 
                           variant="outline"
@@ -268,7 +447,8 @@ export default function CheckoutDemo() {
                           onClick={() => setUseBpay(true)}
                           className="border-blue-300 text-blue-600 hover:bg-blue-50"
                         >
-                          Enable bpay
+                          <Zap className="h-4 w-4 mr-2" />
+                          Enable bpay Extension
                         </Button>
                       </div>
                     </div>
