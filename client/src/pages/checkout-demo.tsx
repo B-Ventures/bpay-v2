@@ -107,11 +107,21 @@ export default function CheckoutDemo() {
   };
 
   const handleUseBcard = () => {
-    setStep('payment-complete');
-    toast({
-      title: "Payment Successful!",
-      description: "Your order has been placed using your bcard.",
-    });
+    // In banner mode, close the extension and populate card details
+    if (integrationMode === 'banner') {
+      setUseBpay(false);
+      toast({
+        title: "Card Details Added",
+        description: "bcard details have been populated into the checkout form.",
+      });
+    } else {
+      // In addon mode, proceed to payment completion
+      setStep('payment-complete');
+      toast({
+        title: "Payment Successful!",
+        description: "Your order has been placed using your bcard.",
+      });
+    }
   };
 
   return (
@@ -473,12 +483,27 @@ export default function CheckoutDemo() {
                     </div>
                   ) : (
                     <div className="space-y-4">
+                      {/* Show populated card details if bcard was used in banner mode */}
+                      {integrationMode === 'banner' && generatedBcard ? (
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                            <span className="font-semibold text-green-900">bcard Ready!</span>
+                          </div>
+                          <p className="text-sm text-green-700 mb-3">
+                            Your payment has been split and card details are ready to use.
+                          </p>
+                        </div>
+                      ) : null}
+
                       <div>
                         <Label htmlFor="card-number">Card Number</Label>
                         <Input
                           id="card-number"
                           placeholder="1234 5678 9012 3456"
-                          className="mt-1"
+                          value={generatedBcard?.number || ''}
+                          className={`mt-1 ${generatedBcard ? 'bg-green-50 border-green-300' : ''}`}
+                          readOnly={!!generatedBcard}
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -487,7 +512,9 @@ export default function CheckoutDemo() {
                           <Input
                             id="expiry"
                             placeholder="MM/YY"
-                            className="mt-1"
+                            value={generatedBcard?.expiry || ''}
+                            className={`mt-1 ${generatedBcard ? 'bg-green-50 border-green-300' : ''}`}
+                            readOnly={!!generatedBcard}
                           />
                         </div>
                         <div>
@@ -495,7 +522,9 @@ export default function CheckoutDemo() {
                           <Input
                             id="cvv"
                             placeholder="123"
-                            className="mt-1"
+                            value={generatedBcard?.cvv || ''}
+                            className={`mt-1 ${generatedBcard ? 'bg-green-50 border-green-300' : ''}`}
+                            readOnly={!!generatedBcard}
                           />
                         </div>
                       </div>
@@ -504,11 +533,25 @@ export default function CheckoutDemo() {
                         <Input
                           id="name"
                           placeholder="John Doe"
-                          className="mt-1"
+                          value={generatedBcard?.name || ''}
+                          className={`mt-1 ${generatedBcard ? 'bg-green-50 border-green-300' : ''}`}
+                          readOnly={!!generatedBcard}
                         />
                       </div>
-                      <Button className="w-full">
-                        Complete Purchase
+                      <Button 
+                        className="w-full"
+                        onClick={() => {
+                          if (generatedBcard) {
+                            setStep('payment-complete');
+                            toast({
+                              title: "Payment Successful!",
+                              description: "Your order has been placed using your bcard.",
+                            });
+                          }
+                        }}
+                        disabled={!generatedBcard}
+                      >
+                        {generatedBcard ? 'Complete Purchase with bcard' : 'Complete Purchase'}
                       </Button>
                     </div>
                   )}
