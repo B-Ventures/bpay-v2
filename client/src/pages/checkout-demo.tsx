@@ -350,7 +350,10 @@ export default function CheckoutDemo() {
               <Button
                 variant={integrationMode === 'addon' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setIntegrationMode('addon')}
+                onClick={() => {
+                  setIntegrationMode('addon');
+                  setUseBpay(false);
+                }}
                 className="text-xs"
               >
                 Addon Integration
@@ -358,12 +361,20 @@ export default function CheckoutDemo() {
               <Button
                 variant={integrationMode === 'banner' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setIntegrationMode('banner')}
+                onClick={() => {
+                  setIntegrationMode('banner');
+                  setUseBpay(true); // Automatically enable bpay extension in banner mode
+                }}
                 className="text-xs"
               >
                 Banner Integration
               </Button>
             </div>
+            {integrationMode === 'banner' && (
+              <p className="text-xs text-gray-500 mt-2">
+                Browser extension mode: bpay operates independently above the merchant site
+              </p>
+            )}
           </div>
 
           {/* Merchant Header */}
