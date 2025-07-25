@@ -123,6 +123,8 @@ Payment processing: Implement Stripe Issuing for card generation in production m
   - **Proper Card Handoff**: Extension populates generated card details into merchant's existing payment form
   - **Extension-Style UX**: Professional overlay with "Extension" badge and compact responsive design
   - **Dual Integration Demo**: Clear distinction between addon (embedded) and banner (overlay) integration approaches
+  - **Natural Checkout Experience**: Fixed banner mode to behave like normal checkout - removed special "bcard Ready!" messages and styling
+  - **Correct Pricing**: Fixed checkout demo pricing calculations to match subtotal ($2,277.00 + $182.16 tax = $2,459.16 total)
 
 ### January 24, 2025
 - **Unified bcard Creation Flow**: Successfully consolidated two separate bcard creation interfaces into single comprehensive process
