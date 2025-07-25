@@ -135,6 +135,8 @@ Payment processing: Implement Stripe Issuing for card generation in production m
   - **User-Friendly Language**: Replaced "smart payments" with "this new smart payment approach" to clarify bpay concept
   - **Streamlined Flow**: Simplified registration process while maintaining all required functionality
   - **Terms and Privacy**: Added proper legal acknowledgment for user consent during registration
+  - **Popup Registration Interface**: Converted registration flow to always render as popup overlay instead of inline content
+  - **Improved UX**: Added close button and proper modal backdrop for professional popup experience
 
 - **Comprehensive User Registration System**: Implemented complete onboarding flow for addon and extension integration
   - **First-Time User Guide**: Step-by-step introduction explaining bpay benefits and functionality

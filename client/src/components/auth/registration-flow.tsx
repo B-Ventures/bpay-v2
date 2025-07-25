@@ -185,14 +185,20 @@ export default function RegistrationFlow({ isOpen, onClose, integrationMode, onC
   if (!isOpen) return null;
 
   return (
-    <div className={`${integrationMode === 'banner' ? 'fixed inset-0 z-50 bg-black/50' : ''}`}>
-      <div className={`${
-        integrationMode === 'banner' 
-          ? 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg mx-4' 
-          : 'w-full max-w-md mx-auto'
-      }`}>
-        <Card className="bg-white shadow-xl">
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div className="w-full max-w-lg mx-auto">
+        <Card className="bg-white shadow-xl relative">
           <CardHeader className="text-center space-y-2">
+            <div className="absolute top-4 right-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </Button>
+            </div>
             <div className="flex items-center justify-center gap-2">
               <Zap className="h-6 w-6 text-blue-600" />
               <h2 className="text-xl font-bold text-gray-900">Welcome to bpay</h2>
