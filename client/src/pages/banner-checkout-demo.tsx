@@ -17,8 +17,8 @@ export default function BannerCheckoutDemo() {
     if (!user) {
       setShowRegistration(true);
     } else {
-      // User is logged in, proceed with bpay checkout
-      window.location.href = "/payment-demo";
+      // User is logged in, proceed with banner-mode payment flow
+      window.location.href = "/payment-demo?mode=banner";
     }
   };
 
@@ -201,10 +201,8 @@ export default function BannerCheckoutDemo() {
         integrationMode="banner"
         onComplete={() => {
           setShowRegistration(false);
-          // Redirect to payment demo after registration
-          setTimeout(() => {
-            window.location.href = "/payment-demo";
-          }, 1000);
+          // Stay on banner demo page after registration - user is now logged in
+          // The page will automatically update to show they're authenticated
         }}
       />
     </div>

@@ -17,8 +17,8 @@ export default function AddonCheckoutDemo() {
     if (!user) {
       setShowRegistration(true);
     } else {
-      // User is logged in, proceed with bpay checkout
-      window.location.href = "/payment-demo";
+      // User is logged in, proceed with addon-mode payment flow
+      window.location.href = "/payment-demo?mode=addon";
     }
   };
 
@@ -194,10 +194,8 @@ export default function AddonCheckoutDemo() {
         integrationMode="addon"
         onComplete={() => {
           setShowRegistration(false);
-          // Redirect to payment demo after registration
-          setTimeout(() => {
-            window.location.href = "/payment-demo";
-          }, 1000);
+          // Stay on addon demo page after registration - user is now logged in
+          // The page will automatically update to show they're authenticated
         }}
       />
     </div>
