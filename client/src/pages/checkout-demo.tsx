@@ -808,6 +808,7 @@ export default function CheckoutDemo() {
                     onClick={() => {
                       // Populate the merchant's checkout form with bcard details
                       setStep('checkout');
+                      setUseBpay(false); // This will show the checkout form with populated bcard details
                       toast({
                         title: "bcard Details Added",
                         description: "Your card details have been added to the checkout form.",
