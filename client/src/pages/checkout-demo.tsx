@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import RegistrationFlow from "@/components/auth/registration-flow";
 import { 
   CreditCard, 
   Shield, 
@@ -34,6 +36,7 @@ interface BcardDetails {
 
 export default function CheckoutDemo() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [step, setStep] = useState<'checkout' | 'bpay-split' | 'processing' | 'card-ready' | 'payment-complete'>('checkout');
   const [useBpay, setUseBpay] = useState(false);
   const [integrationMode, setIntegrationMode] = useState<'addon' | 'banner'>('addon');
@@ -42,6 +45,7 @@ export default function CheckoutDemo() {
   const [fundingSplits, setFundingSplits] = useState<Record<number, number>>({});
   const [processingStep, setProcessingStep] = useState(0);
   const [generatedBcard, setGeneratedBcard] = useState<BcardDetails | null>(null);
+  const [showRegistration, setShowRegistration] = useState(false);
   
   // Mock funding sources (same structure as core features)
   const fundingSources: FundingSource[] = [
@@ -512,10 +516,16 @@ export default function CheckoutDemo() {
                         variant="secondary" 
                         size="sm"
                         className="bg-white text-blue-600 hover:bg-blue-50"
-                        onClick={() => setUseBpay(true)}
+                        onClick={() => {
+                          if (user) {
+                            setUseBpay(true);
+                          } else {
+                            setShowRegistration(true);
+                          }
+                        }}
                       >
                         <Star className="h-4 w-4 mr-2" />
-                        Try bpay for this payment
+                        {user ? 'Try bpay for this payment' : 'Sign up & try bpay'}
                       </Button>
                     </div>
                   )}
@@ -959,6 +969,20 @@ export default function CheckoutDemo() {
         </div>
         </div>
       </div>
+
+      {/* Registration Flow */}
+      <RegistrationFlow
+        isOpen={showRegistration}
+        onClose={() => setShowRegistration(false)}
+        integrationMode={integrationMode}
+        onComplete={() => {
+          setShowRegistration(false);
+          toast({
+            title: "Welcome to bpay!",
+            description: "Your account is ready. You can now use bpay for smart payment splitting.",
+          });
+        }}
+      />
     </div>
   );
 }

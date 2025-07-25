@@ -116,6 +116,17 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 ## Recent Changes
 
 ### January 25, 2025
+- **Comprehensive User Registration System**: Implemented complete onboarding flow for addon and extension integration
+  - **First-Time User Guide**: Step-by-step introduction explaining bpay benefits and functionality
+  - **Smart Registration Flow**: 5-step process (guide → welcome → profile → funding → complete)
+  - **Progressive Onboarding**: Users learn about bpay before committing to account creation
+  - **Cross-Integration Support**: Registration works seamlessly in both addon and banner extension modes
+  - **Data Persistence**: User preferences and funding sources saved for future transactions across all merchant sites
+  - **Authentication Integration**: Leverages existing Replit Auth system with profile completion flow
+  - **Profile Enhancement**: Added phone number and address collection required for Stripe Issuing compliance
+  - **Funding Source Setup**: Guided process for adding first payment method during registration
+  - **Social Proof Integration**: Shows user count and ratings to build trust during onboarding
+
 - **True Browser Extension Implementation**: Completely redesigned banner integration to provide authentic browser extension behavior
   - **Non-Intrusive Banner Mode**: bpay extension operates ONLY within top banner, never modifying merchant site content
   - **Merchant Site Integrity**: Original checkout form always remains visible and functional in banner mode

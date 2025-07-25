@@ -41,6 +41,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile (for registration flow)
+  app.patch('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const updateData = req.body;
+      
+      // Validate required fields for profile completion
+      if (updateData.phoneNumber || updateData.address) {
+        const updatedUser = await storage.updateUserProfile(userId, updateData);
+        res.json(updatedUser);
+      } else {
+        res.status(400).json({ message: "No valid profile data provided" });
+      }
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Funding sources routes
   app.get('/api/funding-sources', isAuthenticated, async (req: any, res) => {
     try {
