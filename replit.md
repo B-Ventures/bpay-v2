@@ -116,11 +116,23 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 ## Recent Changes
 
 ### January 25, 2025
+- **Comprehensive Landing Page Revamp**: Completely redesigned main landing page for enhanced user experience and investor appeal
+  - **Modern Hero Section**: Gradient background with compelling messaging and social proof (12,000+ users, $2.5M+ processed)
+  - **Investor-Focused Content**: Dedicated "For Investors" section highlighting $78B market opportunity, key metrics, and revenue model
+  - **Enhanced Feature Showcase**: Upgraded features section with interactive hover effects and gradient icon backgrounds
+  - **Professional Navigation**: Fixed navigation with "Live Platform" badge and direct demo links
+  - **Terminology Compliance**: Used "bcard" instead of "virtual cards" throughout all user-facing content
+  - **Mobile-First Design**: Fully responsive with optimized typography and spacing for all device sizes
+  - **Call-to-Action Optimization**: Strategic placement of signup buttons and demo links to maximize conversion
+  - **Market Positioning**: Positioned bpay as innovative fintech solution with strong competitive advantages
+
 - **Split Checkout Demo Pages**: Created separate demo pages with distinct URLs for different integration modes
   - **Addon Checkout Demo** (`/addon-checkout-demo`): Shows bpay integrated as embedded component within merchant checkout
   - **Banner Checkout Demo** (`/banner-checkout-demo`): Shows bpay operating as browser extension banner overlay
   - **URL-Based Differentiation**: Users can now access specific integration modes directly via URLs
   - **Mode-Specific UX**: Each demo clearly shows the distinct user experience for addon vs extension integration
+  - **Self-Contained Payment Flows**: Both demos handle complete bpay payment processes without external redirects
+  - **Integrated PaymentSplitter**: Full payment splitting functionality embedded within each demo context
 - **Popup Profile Interface for Addon Mode**: Implemented comprehensive popup-style profile interface for seamless addon integration
   - **ProfilePopup Component**: Created dedicated popup component with full profile viewing and editing capabilities
   - **Integrated User Menu**: Profile access through dashboard user menu with proper authentication handling
