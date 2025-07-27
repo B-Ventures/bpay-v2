@@ -129,6 +129,21 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 
 ## Recent Changes
 
+### January 27, 2025
+- **Complete Merchant API Implementation**: Successfully built and tested comprehensive REST APIs for bpay that blend Stripe APIs within bpay's interface
+  - **Core Split Payment Processing**: Implemented real bcard payment engine that validates funding sources, processes multi-source payments, and generates virtual cards
+  - **Stripe Integration Blended**: Merchants only interact with bpay APIs while Stripe powers payment processing, virtual card generation, and fund collection in the background
+  - **Production-Ready Payment Flow**: Created complete payment intent creation → split payment confirmation → virtual card generation workflow
+  - **Real-Time Balance Validation**: Added comprehensive funding source balance checking with detailed error reporting for insufficient funds
+  - **Multi-Strategy Split Support**: Implemented percentage-based, amount-based, and smart splitting strategies for flexible payment distribution
+  - **Fee Calculation System**: Built transparent fee structure with bpay fees (2.9%) and Stripe fee tracking for accurate merchant reporting
+  - **Webhook Event System**: Created real-time payment status notifications for merchant integration and order fulfillment
+  - **Authentication & Rate Limiting**: Implemented secure Bearer token authentication with 100 requests/minute rate limiting per merchant
+  - **Merchant Management**: Built complete merchant profile, usage analytics, and transaction history APIs
+  - **Demo Mode Support**: Added development mode for testing without actual Stripe charges while maintaining production-ready structure
+
+## Recent Changes
+
 ### January 25, 2025
 - **Comprehensive Landing Page Revamp**: Completely redesigned main landing page for enhanced user experience and investor appeal
   - **Modern Hero Section**: Gradient background with compelling messaging and social proof (12,000+ users, $2.5M+ processed)

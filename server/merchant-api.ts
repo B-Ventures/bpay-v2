@@ -5,6 +5,7 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import Stripe from "stripe";
 import crypto from "crypto";
+import { bcardPaymentEngine, type SplitConfiguration } from "./services/bcard-payment-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -110,9 +111,12 @@ const confirmPaymentIntentSchema = z.object({
     type: z.literal('bcard'),
     bcard: z.object({
       funding_sources: z.array(z.object({
-        id: z.number(),
-        amount: z.number().positive(),
-        percentage: z.number().min(0).max(100).optional()
+        id: z.string(),
+        stripe_payment_method_id: z.string().optional(),
+        percentage: z.number().min(0).max(100).optional(),
+        amount: z.number().positive().optional(),
+        available_balance: z.number().positive().optional(),
+        nickname: z.string()
       })).min(1),
       split_strategy: z.enum(['percentage', 'amount', 'smart']).default('smart')
     })
@@ -214,92 +218,136 @@ export function registerMerchantAPI(app: Express) {
         });
       }
 
-      // Process bcard payment (simplified for demo)
+      // **CORE BPAY FUNCTIONALITY**: Process split payment using bcard engine
       const bcardData = validatedData.payment_method.bcard;
       const totalAmount = parseFloat(paymentIntent.amount);
       
-      // Validate funding sources sum up correctly
-      let totalCovered = 0;
-      for (const source of bcardData.funding_sources) {
-        if (bcardData.split_strategy === 'percentage' && source.percentage) {
-          totalCovered += (totalAmount * source.percentage) / 100;
-        } else if (source.amount) {
-          totalCovered += source.amount;
+      try {
+        const splitConfig: SplitConfiguration = {
+          funding_sources: bcardData.funding_sources.map(source => ({
+            id: source.id || nanoid(8),
+            type: 'card', // Assume card for now
+            stripe_payment_method_id: source.stripe_payment_method_id || `pm_${nanoid(16)}`, // Mock for demo
+            percentage: source.percentage,
+            amount: source.amount,
+            available_balance: source.available_balance || 100, // Mock balance for demo
+            nickname: source.nickname || 'Funding Source'
+          })),
+          split_strategy: bcardData.split_strategy,
+          total_amount: totalAmount
+        };
+        
+        // Get customer info (use mock data if not provided)
+        const customer = {
+          name: paymentIntent.customerInfo?.name || 'Test Customer',
+          email: paymentIntent.customerInfo?.email || 'test@example.com',
+          phone: paymentIntent.customerInfo?.phone,
+          address: paymentIntent.customerInfo?.address
+        };
+        
+        // Validate split configuration before processing
+        const validation = await bcardPaymentEngine.validateSplitConfiguration(splitConfig);
+        
+        if (!validation.valid) {
+          return res.status(400).json({
+            error: 'insufficient_funds',
+            message: 'Split payment validation failed',
+            details: validation.errors,
+            funding_breakdown: validation.breakdown
+          });
         }
-      }
-
-      if (Math.abs(totalCovered - totalAmount) > 0.01) {
-        return res.status(400).json({
-          error: 'invalid_request',
-          message: 'Funding sources do not cover the total payment amount',
-          details: {
-            required: totalAmount,
-            covered: totalCovered,
-            shortfall: totalAmount - totalCovered
+        
+        // Process the split payment and generate bcard
+        const bcardResult = await bcardPaymentEngine.processSplitPayment(splitConfig, customer);
+        
+        // Update payment intent with success status and bcard details
+        const updatedIntent = await storage.updatePaymentIntent(paymentIntent.id, {
+          status: 'succeeded',
+          splitConfiguration: bcardData,
+          metadata: {
+            ...paymentIntent.metadata,
+            bcard_id: bcardResult.bcard.id,
+            total_collected: bcardResult.total_collected,
+            bpay_fee: bcardResult.fees.bpay_fee,
+            stripe_fees: bcardResult.fees.stripe_fees
           }
+        });
+        
+        // Create success webhook event
+        if (merchant.webhookSecret) {
+          await storage.createWebhookEvent({
+            merchantId: merchant.id,
+            eventType: 'payment_intent.succeeded',
+            eventData: {
+              id: intent_id,
+              object: 'payment_intent',
+              amount: totalAmount,
+              currency: paymentIntent.currency,
+              status: 'succeeded',
+              bcard: {
+                id: bcardResult.bcard.id,
+                funding_breakdown: bcardResult.bcard.funding_breakdown,
+                fees: bcardResult.fees
+              },
+              created: Math.floor(Date.now() / 1000)
+            },
+            deliveryStatus: 'pending',
+            deliveryAttempts: 0,
+            webhookUrl: req.body.webhook_url || `${merchant.website}/webhooks/bpay`,
+            nextRetryAt: new Date()
+          });
+        }
+        
+        // Update merchant volume
+        await storage.updateMerchant(merchant.id, {
+          totalVolume: (parseFloat(merchant.totalVolume) + totalAmount).toString()
+        });
+        
+        res.json({
+          id: intent_id,
+          object: 'payment_intent',
+          amount: totalAmount,
+          currency: paymentIntent.currency,
+          status: 'succeeded',
+          metadata: updatedIntent.metadata,
+          payment_method: {
+            type: 'bcard',
+            bcard: {
+              id: bcardResult.bcard.id,
+              number: bcardResult.bcard.number,
+              exp_month: bcardResult.bcard.exp_month,
+              exp_year: bcardResult.bcard.exp_year,
+              cvc: bcardResult.bcard.cvc,
+              cardholder_name: bcardResult.bcard.cardholder_name,
+              funding_breakdown: bcardResult.bcard.funding_breakdown,
+              total_collected: bcardResult.total_collected,
+              fees: bcardResult.fees
+            }
+          },
+          created: Math.floor(new Date(paymentIntent.createdAt || Date.now()).getTime() / 1000),
+          livemode: merchant.environment === 'production'
+        });
+        
+      } catch (splitError: any) {
+        console.error('Split payment processing error:', splitError);
+        
+        // Update payment intent with failed status
+        await storage.updatePaymentIntent(paymentIntent.id, {
+          status: 'failed',
+          metadata: {
+            ...paymentIntent.metadata,
+            error_message: splitError.message
+          }
+        });
+        
+        return res.status(400).json({
+          error: 'payment_failed',
+          message: splitError.message,
+          type: 'split_payment_error'
         });
       }
 
-      // Update payment intent status
-      const updatedIntent = await storage.updatePaymentIntent(paymentIntent.id, {
-        status: 'processing',
-        splitConfiguration: bcardData
-      });
 
-      // Simulate processing delay and update to succeeded
-      setTimeout(async () => {
-        try {
-          await storage.updatePaymentIntent(paymentIntent.id, {
-            status: 'succeeded'
-          });
-
-          // Create webhook event
-          if (merchant.webhookSecret) {
-            await storage.createWebhookEvent({
-              merchantId: merchant.id,
-              eventType: 'payment_intent.succeeded',
-              eventData: {
-                id: intent_id,
-                object: 'payment_intent',
-                amount: totalAmount,
-                currency: paymentIntent.currency,
-                status: 'succeeded',
-                created: Math.floor(Date.now() / 1000)
-              },
-              deliveryStatus: 'pending',
-              deliveryAttempts: 0,
-              webhookUrl: req.body.webhook_url || `${merchant.website}/webhooks/bpay`,
-              nextRetryAt: new Date()
-            });
-          }
-
-          // Update merchant volume
-          await storage.updateMerchant(merchant.id, {
-            totalVolume: (parseFloat(merchant.totalVolume) + totalAmount).toString()
-          });
-
-        } catch (error) {
-          console.error('Post-processing error:', error);
-        }
-      }, 2000);
-
-      res.json({
-        id: intent_id,
-        object: 'payment_intent',
-        amount: totalAmount,
-        currency: paymentIntent.currency,
-        status: 'processing',
-        metadata: paymentIntent.metadata,
-        payment_method: {
-          type: 'bcard',
-          bcard: {
-            funding_sources: bcardData.funding_sources,
-            split_strategy: bcardData.split_strategy
-          }
-        },
-        created: Math.floor(new Date(paymentIntent.createdAt).getTime() / 1000),
-        livemode: merchant.environment === 'production'
-      });
 
     } catch (error) {
       console.error('Confirm payment intent error:', error);
@@ -341,7 +389,7 @@ export function registerMerchantAPI(app: Express) {
         metadata: paymentIntent.metadata,
         customer: paymentIntent.customerInfo,
         split_configuration: paymentIntent.splitConfiguration,
-        created: Math.floor(new Date(paymentIntent.createdAt).getTime() / 1000),
+        created: Math.floor(new Date(paymentIntent.createdAt || Date.now()).getTime() / 1000),
         livemode: merchant.environment === 'production'
       });
 
@@ -372,7 +420,7 @@ export function registerMerchantAPI(app: Express) {
           currency: intent.currency,
           status: intent.status,
           metadata: intent.metadata,
-          created: Math.floor(new Date(intent.createdAt).getTime() / 1000),
+          created: Math.floor(new Date(intent.createdAt || Date.now()).getTime() / 1000),
           livemode: merchant.environment === 'production'
         })),
         has_more: paymentIntents.length > limit,
@@ -428,8 +476,8 @@ export function registerMerchantAPI(app: Express) {
       const usage = await storage.getApiUsage(merchant.id, date);
       
       const summary = usage.reduce((acc, curr) => {
-        acc.total_requests += curr.requestCount;
-        acc.endpoints[curr.endpoint] = (acc.endpoints[curr.endpoint] || 0) + curr.requestCount;
+        acc.total_requests += curr.requestCount || 0;
+        acc.endpoints[curr.endpoint] = (acc.endpoints[curr.endpoint] || 0) + (curr.requestCount || 0);
         return acc;
       }, {
         total_requests: 0,
@@ -468,7 +516,7 @@ export function registerMerchantAPI(app: Express) {
           object: 'event',
           type: event.eventType,
           data: event.eventData,
-          created: Math.floor(new Date(event.createdAt).getTime() / 1000),
+          created: Math.floor(new Date(event.createdAt || Date.now()).getTime() / 1000),
           livemode: merchant.environment === 'production'
         })),
         has_more: events.length > limit,
