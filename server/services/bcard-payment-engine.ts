@@ -137,32 +137,21 @@ export class BcardPaymentEngine {
       const source = config.funding_sources.find(s => s.id === breakdown.source_id)!;
       
       try {
-        // For demo mode, simulate successful charge without actual Stripe call
-        // In production, this would create real PaymentIntents
-        let paymentIntent: any;
-        
-        if (process.env.NODE_ENV === 'development') {
-          // Simulate successful payment for demo
-          paymentIntent = {
-            id: `pi_demo_${source.id}_${Date.now()}`,
-            status: 'succeeded',
-            latest_charge: `ch_demo_${source.id}_${Date.now()}`
-          };
-        } else {
-          // Real Stripe processing for production
-          paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(breakdown.required_amount * 100),
-            currency: 'usd',
-            payment_method: source.stripe_payment_method_id,
-            confirmation_method: 'manual',
-            confirm: true,
-            metadata: {
-              bpay_source_id: source.id,
-              funding_type: 'bcard_split_payment',
-              customer_email: customer.email
-            }
-          });
-        }
+        // Create PaymentIntent for this funding source using real Stripe APIs
+        // For demo/testing: Use test payment methods with test API keys
+        // For production: Use real payment methods with live API keys
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(breakdown.required_amount * 100), // Convert to cents
+          currency: 'usd',
+          payment_method: source.stripe_payment_method_id || (process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') ? 'pm_card_visa' : source.stripe_payment_method_id),
+          confirmation_method: 'manual',
+          confirm: true,
+          metadata: {
+            bpay_source_id: source.id,
+            funding_type: 'bcard_split_payment',
+            customer_email: customer.email
+          }
+        });
         
         if (paymentIntent.status === 'succeeded') {
           fundingBreakdown.push({
@@ -184,54 +173,39 @@ export class BcardPaymentEngine {
       }
     }
     
-    // Step 3: Generate bcard (virtual card) with collected funds
-    let virtualCard: any;
-    let cardDetails: any;
+    // Step 3: Create Stripe cardholder and virtual card with collected funds
+    // Use real Stripe Issuing APIs for both test and live modes
+    const cardholder = await stripe.issuing.cardholders.create({
+      name: customer.name,
+      email: customer.email,
+      phone_number: customer.phone,
+      billing: customer.address ? {
+        address: customer.address
+      } : undefined,
+      type: 'individual'
+    });
     
-    if (process.env.NODE_ENV === 'development') {
-      // Demo mode: Generate mock bcard details
-      virtualCard = {
-        id: `card_demo_${nanoid(16)}`,
-        exp_month: 12,
-        exp_year: 2027
-      };
-      
-      cardDetails = {
-        ...virtualCard,
-        number: '4242424242424242', // Test card number
-        cvc: '123'
-      };
-    } else {
-      // Production mode: Create real Stripe Issuing card
-      const cardholder = await stripe.issuing.cardholders.create({
-        name: customer.name,
-        email: customer.email,
-        phone_number: customer.phone,
-        billing: customer.address ? { address: customer.address } : undefined,
-        type: 'individual'
-      });
-      
-      virtualCard = await stripe.issuing.cards.create({
-        cardholder: cardholder.id,
-        currency: 'usd',
-        type: 'virtual',
-        spending_controls: {
-          spending_limits: [{
-            amount: Math.round(totalCollected * 100),
-            interval: 'per_authorization'
-          }]
-        },
-        metadata: {
-          bpay_payment_type: 'split_payment',
-          total_funded_amount: totalCollected.toString(),
-          customer_email: customer.email
-        }
-      });
-      
-      cardDetails = await stripe.issuing.cards.retrieve(virtualCard.id, {
-        expand: ['number', 'cvc']
-      });
-    }
+    const virtualCard = await stripe.issuing.cards.create({
+      cardholder: cardholder.id,
+      currency: 'usd',
+      type: 'virtual',
+      spending_controls: {
+        spending_limits: [{
+          amount: Math.round(totalCollected * 100), // Set spending limit to collected amount
+          interval: 'per_authorization'
+        }]
+      },
+      metadata: {
+        bpay_payment_type: 'split_payment',
+        total_funded_amount: totalCollected.toString(),
+        customer_email: customer.email
+      }
+    });
+    
+    // Step 4: Retrieve card details securely
+    const cardDetails = await stripe.issuing.cards.retrieve(virtualCard.id, {
+      expand: ['number', 'cvc']
+    });
     
     // Calculate bpay fees (2.9% of total)
     const bpayFee = totalCollected * 0.029;

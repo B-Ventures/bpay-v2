@@ -123,6 +123,131 @@ export const merchantApiUsage = pgTable("merchant_api_usage", {
   date: varchar("date").notNull(), // YYYY-MM-DD for daily tracking
 });
 
+// Subscription packages and tiers
+export const subscriptionTiers = pgTable("subscription_tiers", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // Free, Pro, Premium
+  displayName: varchar("display_name").notNull(),
+  monthlyPrice: decimal("monthly_price", { precision: 10, scale: 2 }).notNull(),
+  transactionFeeRate: decimal("transaction_fee_rate", { precision: 5, scale: 4 }).notNull(), // 0.029 = 2.9%
+  features: jsonb("features"), // Array of feature flags
+  limits: jsonb("limits"), // API limits, funding source limits, etc.
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User subscriptions
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  tierId: integer("tier_id").references(() => subscriptionTiers.id).notNull(),
+  status: varchar("status").default("active"), // active, cancelled, expired, suspended
+  currentPeriodStart: timestamp("current_period_start").notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// KYC verification data
+export const kycVerifications = pgTable("kyc_verifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  status: varchar("status").default("pending"), // pending, approved, rejected, under_review
+  documentType: varchar("document_type"), // passport, drivers_license, national_id
+  documentNumber: varchar("document_number"),
+  documentUrls: text("document_urls").array(), // Array of uploaded document URLs
+  verificationMethod: varchar("verification_method"), // manual, automated, third_party
+  riskScore: integer("risk_score"), // 0-100 risk assessment
+  notes: text("notes"),
+  reviewedBy: varchar("reviewed_by"), // Admin user ID who reviewed
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Payment vendors configuration
+export const paymentVendors = pgTable("payment_vendors", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // stripe, paypal, etc.
+  displayName: varchar("display_name").notNull(),
+  isActive: boolean("is_active").default(true),
+  capabilities: text("capabilities").array(), // payment_processing, card_issuing, etc.
+  configuration: jsonb("configuration"), // API keys, settings
+  feeStructure: jsonb("fee_structure"), // Vendor's fee structure
+  priority: integer("priority").default(0), // For failover ordering
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// System revenue tracking
+export const revenueEntries = pgTable("revenue_entries", {
+  id: serial("id").primaryKey(),
+  type: varchar("type").notNull(), // subscription, transaction_fee, chargeback
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  currency: varchar("currency").default("USD"),
+  userId: varchar("user_id").references(() => users.id),
+  merchantId: integer("merchant_id").references(() => merchants.id),
+  transactionId: integer("transaction_id").references(() => transactions.id),
+  subscriptionId: integer("subscription_id").references(() => userSubscriptions.id),
+  metadata: jsonb("metadata"),
+  date: timestamp("date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Funding pool tracking (where all funding sources deposit)
+export const fundingPoolEntries = pgTable("funding_pool_entries", {
+  id: serial("id").primaryKey(),
+  type: varchar("type").notNull(), // deposit, withdrawal, bcard_generation
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  currency: varchar("currency").default("USD"),
+  sourceType: varchar("source_type"), // funding_source, vendor_settlement
+  sourceId: varchar("source_id"), // ID of funding source or vendor
+  bcardId: varchar("bcard_id"), // If related to bcard generation
+  status: varchar("status").default("pending"), // pending, completed, failed
+  vendorTransactionId: varchar("vendor_transaction_id"), // Stripe PI ID, etc.
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// bcard generation attempts tracking
+export const bcardGenerationAttempts = pgTable("bcard_generation_attempts", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  merchantId: integer("merchant_id").references(() => merchants.id),
+  requestedAmount: decimal("requested_amount", { precision: 10, scale: 2 }).notNull(),
+  actualAmount: decimal("actual_amount", { precision: 10, scale: 2 }),
+  currency: varchar("currency").default("USD"),
+  splitConfiguration: jsonb("split_configuration"), // Funding sources and percentages
+  status: varchar("status").default("pending"), // pending, completed, failed, partial
+  bcardId: varchar("bcard_id"), // Generated bcard ID if successful
+  errorMessage: text("error_message"),
+  vendorUsed: varchar("vendor_used"), // stripe, paypal, etc.
+  processingTimeMs: integer("processing_time_ms"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Funding source deduction attempts
+export const fundingDeductionAttempts = pgTable("funding_deduction_attempts", {
+  id: serial("id").primaryKey(),
+  bcardGenerationId: integer("bcard_generation_id").references(() => bcardGenerationAttempts.id).notNull(),
+  fundingSourceId: integer("funding_source_id").references(() => fundingSources.id).notNull(),
+  attemptedAmount: decimal("attempted_amount", { precision: 10, scale: 2 }).notNull(),
+  actualAmount: decimal("actual_amount", { precision: 10, scale: 2 }),
+  currency: varchar("currency").default("USD"),
+  status: varchar("status").default("pending"), // pending, completed, failed
+  vendorTransactionId: varchar("vendor_transaction_id"), // Stripe PI ID
+  errorCode: varchar("error_code"),
+  errorMessage: text("error_message"),
+  processingTimeMs: integer("processing_time_ms"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Payment Intents (for merchant payment processing)
 export const paymentIntents = pgTable("payment_intents", {
   id: serial("id").primaryKey(),
@@ -156,11 +281,13 @@ export const webhookEvents = pgTable("webhook_events", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   fundingSources: many(fundingSources),
   virtualCards: many(virtualCards),
   transactions: many(transactions),
   merchants: many(merchants),
+  subscription: one(userSubscriptions),
+  kycVerification: one(kycVerifications),
 }));
 
 export const fundingSourcesRelations = relations(fundingSources, ({ one }) => ({
@@ -190,13 +317,20 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
 }));
 
 export const merchantsRelations = relations(merchants, ({ one, many }) => ({
-  user: one(users, {
-    fields: [merchants.userId],
-    references: [users.id],
-  }),
+  user: one(users, { fields: [merchants.userId], references: [users.id] }),
   paymentIntents: many(paymentIntents),
   webhookEvents: many(webhookEvents),
   apiUsage: many(merchantApiUsage),
+  revenueEntries: many(revenueEntries),
+}));
+
+export const subscriptionTiersRelations = relations(subscriptionTiers, ({ many }) => ({
+  subscriptions: many(userSubscriptions),
+}));
+
+export const userSubscriptionsRelations = relations(userSubscriptions, ({ one }) => ({
+  user: one(users, { fields: [userSubscriptions.userId], references: [users.id] }),
+  tier: one(subscriptionTiers, { fields: [userSubscriptions.tierId], references: [subscriptionTiers.id] }),
 }));
 
 export const paymentIntentsRelations = relations(paymentIntents, ({ one }) => ({
@@ -252,6 +386,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 
+
 export const insertMerchantSchema = createInsertSchema(merchants).omit({
   id: true,
   createdAt: true,
@@ -282,3 +417,31 @@ export const insertMerchantApiUsageSchema = createInsertSchema(merchantApiUsage)
 });
 export type InsertMerchantApiUsage = z.infer<typeof insertMerchantApiUsageSchema>;
 export type MerchantApiUsage = typeof merchantApiUsage.$inferSelect;
+
+// Admin Schema Types and Schemas
+export type SubscriptionTier = typeof subscriptionTiers.$inferSelect;
+export type InsertSubscriptionTier = typeof subscriptionTiers.$inferInsert;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
+export type KycVerification = typeof kycVerifications.$inferSelect;
+export type InsertKycVerification = typeof kycVerifications.$inferInsert;
+export type PaymentVendor = typeof paymentVendors.$inferSelect;
+export type InsertPaymentVendor = typeof paymentVendors.$inferInsert;
+export type RevenueEntry = typeof revenueEntries.$inferSelect;
+export type InsertRevenueEntry = typeof revenueEntries.$inferInsert;
+export type FundingPoolEntry = typeof fundingPoolEntries.$inferSelect;
+export type InsertFundingPoolEntry = typeof fundingPoolEntries.$inferInsert;
+export type BcardGenerationAttempt = typeof bcardGenerationAttempts.$inferSelect;
+export type InsertBcardGenerationAttempt = typeof bcardGenerationAttempts.$inferInsert;
+export type FundingDeductionAttempt = typeof fundingDeductionAttempts.$inferSelect;
+export type InsertFundingDeductionAttempt = typeof fundingDeductionAttempts.$inferInsert;
+
+// Admin Zod Schemas
+export const insertSubscriptionTierSchema = createInsertSchema(subscriptionTiers);
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions);
+export const insertKycVerificationSchema = createInsertSchema(kycVerifications);
+export const insertPaymentVendorSchema = createInsertSchema(paymentVendors);
+export const insertRevenueEntrySchema = createInsertSchema(revenueEntries);
+export const insertFundingPoolEntrySchema = createInsertSchema(fundingPoolEntries);
+export const insertBcardGenerationAttemptSchema = createInsertSchema(bcardGenerationAttempts);
+export const insertFundingDeductionAttemptSchema = createInsertSchema(fundingDeductionAttempts);

@@ -914,6 +914,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Merchant API routes
   registerMerchantAPI(app);
 
+  // Register Admin API routes
+  const adminApi = await import("./admin-api");
+  app.use("/api/admin", adminApi.default);
+
   const httpServer = createServer(app);
   return httpServer;
 }

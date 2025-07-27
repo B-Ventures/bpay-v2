@@ -1,222 +1,206 @@
-import Stripe from 'stripe';
-import { nanoid } from 'nanoid';
+import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+interface BcardCreationRequest {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  address?: any; // JSON address object
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-06-30.basil',
-});
+interface SpendingControls {
+  spending_limits?: Array<{
+    amount: number;
+    interval: 'per_authorization' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'all_time';
+  }>;
+  allowed_categories?: string[];
+  blocked_categories?: string[];
+  spending_limits_currency?: string;
+}
 
-export class StripeIssuingService {
-  private isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') || false;
+class StripeIssuingService {
+  private stripe: Stripe;
+  private isTestMode: boolean;
 
   constructor() {
-    console.log(this.isTestMode ? '✅ Using Stripe test keys - Real Issuing APIs enabled' : '⚠️  Live keys detected - Using mock mode for Issuing');
-  }
-
-  // Fund the Issuing balance (required before creating cards)
-  async fundIssuingBalance(amount: number, currency: string = 'usd') {
-    try {
-      if (this.isTestMode) {
-        // Use test helper to simulate funding in test mode
-        const result = await fetch('https://api.stripe.com/v1/test_helpers/issuing/fund_balance', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: new URLSearchParams({
-            amount: Math.round(amount * 100).toString(),
-            currency: currency.toLowerCase()
-          })
-        });
-        
-        if (!result.ok) {
-          throw new Error(`Failed to fund test balance: ${result.status}`);
-        }
-        
-        const data = await result.json();
-        console.log(`Test Issuing balance funded: $${amount} ${currency.toUpperCase()}`);
-        return data;
-      } else {
-        // In production, user would need to transfer funds via bank transfer
-        // For now, log that funding is needed and continue with card creation
-        console.log(`Production mode: $${amount} needed in Issuing balance. User should transfer funds via Dashboard.`);
-        return { 
-          message: 'Production funding required',
-          amount_needed: amount,
-          currency: currency 
-        };
-      }
-    } catch (error) {
-      console.error('Error funding Issuing balance:', error);
-      throw error;
+    const secretKey = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_TEST_SECRET_KEY;
+    
+    if (!secretKey) {
+      throw new Error('Missing Stripe secret key. Please provide STRIPE_SECRET_KEY or STRIPE_TEST_SECRET_KEY');
     }
+
+    this.isTestMode = secretKey.startsWith('sk_test_');
+    this.stripe = new Stripe(secretKey, {
+      apiVersion: "2025-06-30.basil",
+    });
+
+    console.log(`🔑 Stripe Issuing initialized in ${this.isTestMode ? 'TEST' : 'LIVE'} mode`);
   }
 
-  // Check Issuing balance
-  async getIssuingBalance(currency: string = 'usd') {
-    try {
-      const balance = await stripe.balance.retrieve();
-      const issuingBalance = balance.issuing?.available?.find(b => b.currency === currency.toLowerCase());
-      return issuingBalance ? issuingBalance.amount / 100 : 0; // Convert from cents
-    } catch (error) {
-      console.error('Error getting Issuing balance:', error);
-      return 0;
-    }
-  }
-
-  // Create cardholder for user
-  async createCardholder(user: any) {
-    try {
-      if (!this.isTestMode) {
-        // Use mock cardholder for live keys since Issuing isn't available
-        console.log('Creating mock cardholder due to live key restrictions');
-        return {
-          id: `ich_${nanoid(16)}`,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'bpay User',
-          email: user.email,
-          status: 'active',
-          type: 'individual',
-          metadata: {
-            source: 'bpay',
-            created_by: 'bpay_system'
-          }
-        };
-      }
-
-      // Create real Stripe cardholder with test keys
-      console.log('Creating real Stripe cardholder with test keys');
-      const stripeCardholder = await stripe.issuing.cardholders.create({
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'bpay User',
-        email: user.email || undefined,
-        phone_number: user.phoneNumber || undefined,
-        status: 'active',
+  async createCardholder(request: BcardCreationRequest): Promise<any> {
+    if (this.isTestMode) {
+      // Use Stripe Issuing test mode for real card creation
+      const cardholderData: any = {
+        name: `${request.firstName || ''} ${request.lastName || ''}`.trim() || 'Test User',
+        email: request.email,
+        phone_number: request.phoneNumber,
         type: 'individual',
         billing: {
-          address: {
-            line1: user.address?.line1 || '123 Main St',
-            city: user.address?.city || 'San Francisco',
-            state: user.address?.state || 'CA',
-            postal_code: user.address?.postal_code || '94102',
-            country: 'US',
-          },
-        },
-        metadata: {
-          source: 'bpay',
-          created_by: 'bpay_system'
+          address: request.address || {
+            line1: '123 Main St',
+            city: 'San Francisco', 
+            state: 'CA',
+            postal_code: '94102',
+            country: 'US'
+          }
         }
-      });
-      
-      return stripeCardholder;
-    } catch (error) {
-      console.error('Error creating cardholder:', error);
-      throw error;
+      };
+
+      const cardholder = await this.stripe.issuing.cardholders.create(cardholderData);
+      console.log(`✓ Created test cardholder: ${cardholder.id}`);
+      return cardholder;
+    } else {
+      // Production mode - create real cardholder with live keys
+      const cardholderData: any = {
+        name: `${request.firstName || ''} ${request.lastName || ''}`.trim(),
+        email: request.email,
+        phone_number: request.phoneNumber,
+        type: 'individual',
+        billing: {
+          address: request.address || {
+            line1: '123 Main St',
+            city: 'San Francisco',
+            state: 'CA', 
+            postal_code: '94102',
+            country: 'US'
+          }
+        }
+      };
+
+      const cardholder = await this.stripe.issuing.cardholders.create(cardholderData);
+      console.log(`✓ Created live cardholder: ${cardholder.id}`);
+      return cardholder;
     }
   }
 
-  // Create bcard (virtual card)
-  async createBcard(cardholderId: string, spendingControls: any) {
+  async createBcard(cardholderId: string, spendingControls: SpendingControls): Promise<any> {
     try {
-      if (!this.isTestMode) {
-        // Use mock card for live keys since Issuing isn't available
-        console.log('Creating mock bcard due to live key restrictions');
-        return {
-          id: `ic_${nanoid(16)}`,
-          cardholder: cardholderId,
-          currency: 'usd',
-          type: 'virtual',
-          status: 'active',
-          last4: Math.floor(Math.random() * 9000) + 1000,
-          exp_month: Math.floor(Math.random() * 12) + 1,
-          exp_year: new Date().getFullYear() + Math.floor(Math.random() * 5) + 1,
-          brand: 'visa',
-          spending_controls: spendingControls,
-          metadata: {
-            source: 'bpay',
-            created_by: 'bpay_system',
-          }
-        };
-      }
-
-      // Create real Stripe Issuing card with test keys
-      console.log('Creating real Stripe Issuing bcard with test keys');
-      
-      // First, fund the test Issuing balance if needed
-      await this.fundIssuingBalance(1000); // Fund with $1000 for testing
-
-      const stripeCard = await stripe.issuing.cards.create({
+      const cardData: any = {
         cardholder: cardholderId,
         currency: 'usd',
         type: 'virtual',
-        status: 'active',
-        spending_controls: spendingControls,
-        metadata: {
-          source: 'bpay',
-          created_by: 'bpay_system',
-        },
-      });
+        spending_controls: spendingControls
+      };
+
+      const card = await this.stripe.issuing.cards.create(cardData);
       
-      return stripeCard;
-    } catch (error) {
-      console.error('Error creating bcard:', error);
-      throw error;
+      if (this.isTestMode) {
+        console.log(`✓ Created test virtual card: ${card.id} (last4: ${card.last4})`);
+      } else {
+        console.log(`✓ Created live virtual card: ${card.id} (last4: ${card.last4})`);
+      }
+      
+      return card;
+    } catch (error: any) {
+      console.error('Stripe Issuing card creation failed:', error.message);
+      throw new Error(`Failed to create virtual card: ${error.message}`);
     }
   }
 
-  // Get card details (including sensitive data like full PAN)
-  async getCardDetails(cardId: string) {
+  async getCardDetails(cardId: string): Promise<any> {
     try {
-      if (!this.isTestMode) {
-        // Return mock card details for live mode
-        return {
-          id: cardId,
-          number: '4242424242424242',
-          exp_month: 12,
-          exp_year: 2027,
-          cvc: '123',
-          brand: 'visa',
-          type: 'virtual'
-        };
-      }
+      const card = await this.stripe.issuing.cards.retrieve(cardId);
+      return {
+        id: card.id,
+        last4: card.last4,
+        brand: card.brand,
+        exp_month: card.exp_month,
+        exp_year: card.exp_year,
+        status: card.status,
+        spending_controls: card.spending_controls,
+        cardholder: card.cardholder
+      };
+    } catch (error: any) {
+      console.error('Failed to get card details:', error.message);
+      throw new Error(`Failed to retrieve card details: ${error.message}`);
+    }
+  }
 
-      const card = await stripe.issuing.cards.retrieve(cardId, {
+  async getFullCardDetails(cardId: string): Promise<any> {
+    try {
+      // Retrieve sensitive card details for checkout
+      const card = await this.stripe.issuing.cards.retrieve(cardId, {
         expand: ['number', 'cvc']
       });
       
       return {
-        id: card.id,
         number: (card as any).number,
         exp_month: card.exp_month,
         exp_year: card.exp_year,
-        cvc: (card as any).cvc,
-        brand: card.brand,
-        type: card.type
+        cvc: (card as any).cvc
       };
-    } catch (error) {
-      console.error('Error retrieving card details:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Failed to get full card details:', error.message);
+      throw new Error(`Failed to retrieve sensitive card details: ${error.message}`);
     }
   }
 
-  // Update card status (freeze/unfreeze)
-  async updateCardStatus(cardId: string, status: 'active' | 'inactive') {
+  async updateCardStatus(cardId: string, status: 'active' | 'inactive'): Promise<any> {
     try {
-      if (!this.isTestMode) {
-        console.log(`Mock: Card ${cardId} status updated to ${status}`);
-        return { id: cardId, status };
-      }
-
-      const card = await stripe.issuing.cards.update(cardId, { status });
+      const card = await this.stripe.issuing.cards.update(cardId, {
+        status: status
+      });
+      
+      console.log(`✓ Updated card ${cardId} status to ${status}`);
       return card;
-    } catch (error) {
-      console.error('Error updating card status:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Failed to update card status:', error.message);
+      throw new Error(`Failed to update card status: ${error.message}`);
     }
+  }
+
+  async getIssuingBalance(): Promise<number> {
+    try {
+      if (this.isTestMode) {
+        // For test mode, return a mock balance
+        return 1000; // $1000 test balance
+      } else {
+        // For live mode, get actual Issuing balance
+        const balance = await this.stripe.balance.retrieve({
+          expand: ['available']
+        });
+        
+        // Return Issuing available balance in dollars
+        const issuingBalance = balance.available?.find(b => b.source_types?.issuing_authorization);
+        return (issuingBalance?.amount || 0) / 100;
+      }
+    } catch (error: any) {
+      console.error('Failed to get Issuing balance:', error.message);
+      return 0;
+    }
+  }
+
+  async fundIssuingBalance(amount: number): Promise<void> {
+    try {
+      if (this.isTestMode) {
+        console.log(`✓ Mock funding Issuing balance with $${amount} (test mode)`);
+        return;
+      } else {
+        // In live mode, you would transfer funds to Issuing balance
+        // This typically involves moving funds from Connect account to Issuing
+        console.log(`⚠️ Live mode: Funding Issuing balance requires manual setup`);
+        console.log(`   Required amount: $${amount}`);
+        console.log(`   This should be implemented based on your funding strategy`);
+      }
+    } catch (error: any) {
+      console.error('Failed to fund Issuing balance:', error.message);
+      throw new Error(`Failed to fund Issuing balance: ${error.message}`);
+    }
+  }
+
+  getMode(): 'test' | 'live' {
+    return this.isTestMode ? 'test' : 'live';
   }
 }
 
-// Export a singleton instance
 export const stripeIssuingService = new StripeIssuingService();
