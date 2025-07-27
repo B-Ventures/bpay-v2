@@ -146,9 +146,7 @@ export function registerMerchantAPI(app: Express) {
           bpay_intent_id: intentId,
           ...validatedData.metadata
         },
-        automatic_payment_methods: {
-          enabled: false // We'll handle payment methods ourselves
-        }
+        payment_method_types: ['card'] // Specify payment method types
       });
 
       // Store payment intent in our system
