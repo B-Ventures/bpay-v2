@@ -90,9 +90,8 @@ export default function Landing() {
               </Button>
               <Button 
                 size="lg" 
-                variant="outline"
                 onClick={() => window.location.href = "/addon-checkout-demo"}
-                className="border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
+                className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Try Live Demo
@@ -434,7 +433,7 @@ export default function Landing() {
             <p className="text-gray-600 mb-4">
               Need custom volume pricing? Processing over $50K monthly?
             </p>
-            <Button variant="outline" className="px-8 py-3">
+            <Button className="border-2 border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)] bg-transparent hover:bg-[hsl(249,83%,65%)] hover:text-white px-8 py-3 transition-all duration-300">
               Contact Enterprise Sales
             </Button>
           </div>
@@ -461,9 +460,8 @@ export default function Landing() {
             </Button>
             <Button 
               size="lg"
-              variant="outline"
               onClick={() => window.location.href = "/banner-checkout-demo"}
-              className="border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
+              className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
             >
               Try Extension Demo
             </Button>

@@ -69,8 +69,7 @@ export default function Investors() {
               </Button>
               <Button 
                 size="lg" 
-                variant="outline"
-                className="border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
+                className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
               >
                 Schedule Meeting
               </Button>
@@ -225,8 +224,7 @@ export default function Investors() {
             </Button>
             <Button 
               size="lg"
-              variant="outline"
-              className="border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
+              className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
             >
               Download One-Pager
             </Button>
