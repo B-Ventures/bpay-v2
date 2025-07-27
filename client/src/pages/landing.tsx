@@ -20,7 +20,7 @@ export default function Landing() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-center space-x-6">
                 <a href="#how-it-works" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">How It Works</a>
-                <a href="#for-investors" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">For Investors</a>
+                <a href="/investors" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">For Investors</a>
                 <a href="#features" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Features</a>
                 <a href="/addon-checkout-demo" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Live Demo</a>
                 <Button variant="ghost" onClick={() => window.location.href = "/api/login"} className="text-gray-600">
@@ -32,10 +32,17 @@ export default function Landing() {
               </div>
             </div>
             <div className="md:hidden">
-              <Button variant="ghost" size="sm">
+              <button 
+                className="p-2 rounded-md text-gray-600 hover:text-[hsl(249,83%,65%)] hover:bg-gray-100 transition-colors"
+                onClick={() => alert('Mobile menu coming soon!')}
+              >
                 <span className="sr-only">Open main menu</span>
-                ☰
-              </Button>
+                <div className="w-6 h-6 flex flex-col justify-center space-y-1">
+                  <div className="w-full h-0.5 bg-current"></div>
+                  <div className="w-full h-0.5 bg-current"></div>
+                  <div className="w-full h-0.5 bg-current"></div>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -183,117 +190,7 @@ export default function Landing() {
 
 
 
-      {/* For Investors Section */}
-      <div id="for-investors" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <Badge className="mb-4 bg-green-100 text-green-700">For Investors</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Transforming The Payment Industry
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              bpay is positioned to capture significant market share in the rapidly growing fintech payment orchestration space
-            </p>
-          </div>
 
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">Market Opportunity</h3>
-              <div className="space-y-6">
-                <div className="flex items-start">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                    <TrendingUp className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">$78B Payment Processing Market</h4>
-                    <p className="text-gray-600">Growing at 12.7% CAGR, with increasing demand for flexible payment solutions</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                    <Users className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">430M+ Credit Card Users</h4>
-                    <p className="text-gray-600">In US alone, seeking better ways to optimize rewards and manage spending</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                    <Building2 className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">5M+ E-commerce Merchants</h4>
-                    <p className="text-gray-600">Looking for innovative payment solutions to increase conversion rates</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 rounded-2xl p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Key Metrics</h3>
-              <div className="grid grid-cols-2 gap-8">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">15%</div>
-                  <div className="text-sm text-gray-600">Monthly Growth Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">$2.5M</div>
-                  <div className="text-sm text-gray-600">Transaction Volume</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">12k+</div>
-                  <div className="text-sm text-gray-600">Active Users</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">92%</div>
-                  <div className="text-sm text-gray-600">User Retention</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <Card className="p-8 hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-0 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Target className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-4">Revenue Model</h3>
-                <p className="text-gray-600 mb-4">Hybrid subscription + transaction fees with scalable pricing tiers</p>
-                <div className="text-2xl font-bold text-[hsl(249,83%,65%)]">0.9% - 2.9%</div>
-                <div className="text-sm text-gray-500">+ subscription revenue</div>
-              </CardContent>
-            </Card>
-            
-            <Card className="p-8 hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-0 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Shield className="h-8 w-8 text-green-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-4">Competitive Advantage</h3>
-                <p className="text-gray-600 mb-4">First-to-market payment splitting technology with strong IP protection</p>
-                <div className="text-2xl font-bold text-[hsl(249,83%,65%)]">3 Patents</div>
-                <div className="text-sm text-gray-500">pending</div>
-              </CardContent>
-            </Card>
-            
-            <Card className="p-8 hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-0 text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Clock className="h-8 w-8 text-purple-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-4">Time to Market</h3>
-                <p className="text-gray-600 mb-4">Fully operational platform ready for scaling and merchant partnerships</p>
-                <div className="text-2xl font-bold text-[hsl(249,83%,65%)]">Live Now</div>
-                <div className="text-sm text-gray-500">production ready</div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
 
       {/* Features Section */}
       <div id="features" className="py-24 bg-gray-50">
@@ -421,7 +318,10 @@ export default function Landing() {
                   </li>
                 </ul>
                 
-                <Button className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200">
+                <Button 
+                  onClick={() => window.location.href = "/api/login"}
+                  className="w-full bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                >
                   Get Started Free
                 </Button>
               </CardContent>
@@ -472,7 +372,10 @@ export default function Landing() {
                   </li>
                 </ul>
                 
-                <Button className="w-full bg-white text-[hsl(249,83%,65%)] hover:bg-gray-50 font-semibold">
+                <Button 
+                  onClick={() => window.location.href = "/api/login"}
+                  className="w-full bg-white text-[hsl(249,83%,65%)] hover:bg-gray-50 font-semibold border-0"
+                >
                   Start Pro Trial
                 </Button>
               </CardContent>
@@ -517,7 +420,10 @@ export default function Landing() {
                   </li>
                 </ul>
                 
-                <Button className="w-full bg-[hsl(249,83%,65%)] text-white hover:bg-[hsl(249,83%,60%)]">
+                <Button 
+                  onClick={() => window.location.href = "/api/login"}
+                  className="w-full bg-[hsl(249,83%,65%)] text-white hover:bg-[hsl(249,83%,60%)] border-0"
+                >
                   Start Premium
                 </Button>
               </CardContent>
@@ -569,7 +475,7 @@ export default function Landing() {
       <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
-            <div className="col-span-2">
+            <div className="col-span-2 md:col-span-1">
               <div className="flex items-center mb-6">
                 <Zap className="h-8 w-8 text-[hsl(249,83%,65%)] mr-3" />
                 <span className="text-2xl font-bold">bpay</span>
@@ -596,16 +502,26 @@ export default function Landing() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-300">
-                <li><a href="#for-investors" className="hover:text-white transition-colors">For Investors</a></li>
+                <li><a href="/investors" className="hover:text-white transition-colors">For Investors</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="mailto:hello@getbpay.com" className="hover:text-white transition-colors">Contact</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Contact</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>📧 hello@getbpay.com</li>
+                <li>📞 +1 (551) 375-8915</li>
+                <li>📍 Casper, Wyoming</li>
+                <li>🇺🇸 United States</li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 bpay. All rights reserved. Built with modern fintech infrastructure.</p>
+            <p>&copy; 2025 B Ventures LLC. All rights reserved. Built with modern fintech infrastructure.</p>
           </div>
         </div>
       </footer>

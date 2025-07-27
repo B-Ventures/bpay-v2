@@ -14,6 +14,7 @@ import AdminPanel from "@/pages/admin-panel";
 import PaymentDemo from "@/pages/payment-demo";
 import AddonCheckoutDemo from "@/pages/addon-checkout-demo";
 import BannerCheckoutDemo from "@/pages/banner-checkout-demo";
+import Investors from "@/pages/investors";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/payment-demo" component={PaymentDemo} />
       <Route path="/addon-checkout-demo" component={AddonCheckoutDemo} />
       <Route path="/banner-checkout-demo" component={BannerCheckoutDemo} />
+      <Route path="/investors" component={Investors} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />

@@ -135,6 +135,18 @@ Payment processing: Implement Stripe Issuing for card generation in production m
   - **Mode-Specific UX**: Each demo clearly shows the distinct user experience for addon vs extension integration
   - **Self-Contained Payment Flows**: Both demos handle complete bpay payment processes without external redirects
   - **Integrated PaymentSplitter**: Full payment splitting functionality embedded within each demo context
+
+- **Separate Investors Page**: Created dedicated `/investors` page with comprehensive market analysis and business model details
+  - **Market Opportunity**: Highlighted $78B payment processing market with 12.7% CAGR growth
+  - **Business Model**: Showcased hybrid subscription + transaction fee model with scalable pricing
+  - **Key Metrics**: Displayed growth rate, transaction volume, user count, and retention statistics
+  - **Investment Focus**: Positioned platform for investor relations and funding discussions
+
+- **UI/UX Improvements**: Fixed button styling issues and enhanced user interface consistency
+  - **Button Styling**: Resolved white text on white background issues with proper hover states
+  - **Mobile Menu**: Implemented proper hamburger menu icon (placeholder functionality)
+  - **Company Information**: Updated footer with B Ventures LLC copyright and contact details
+  - **Contact Details**: Added phone (+1-551-375-8915), email (hello@getbpay.com), and Wyoming address
 - **Popup Profile Interface for Addon Mode**: Implemented comprehensive popup-style profile interface for seamless addon integration
   - **ProfilePopup Component**: Created dedicated popup component with full profile viewing and editing capabilities
   - **Integrated User Menu**: Profile access through dashboard user menu with proper authentication handling
