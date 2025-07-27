@@ -37,9 +37,11 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/merchant-portal" component={MerchantPortal} />
           <Route path="/merchant-dashboard" component={MerchantDashboard} />
-          <Route path="/admin-panel" component={AdminPanel} />
         </>
       )}
+      
+      {/* Admin panel is always accessible but handles its own authentication */}
+      <Route path="/admin-panel" component={AdminPanel} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -869,8 +869,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: user?.firstName || 'Test',
         lastName: user?.lastName || 'User',
         email: user?.email || 'test@example.com',
-        phoneNumber: user?.phoneNumber,
-        address: user?.address
+        phoneNumber: user?.phoneNumber || undefined,
+        address: user?.address || undefined
       });
       
       // Step 5: Create virtual card
