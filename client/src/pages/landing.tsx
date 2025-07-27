@@ -262,9 +262,9 @@ export default function Landing() {
                   <Target className="h-8 w-8 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-bold mb-4">Revenue Model</h3>
-                <p className="text-gray-600 mb-4">Transaction-based fees with high gross margins and recurring revenue streams</p>
-                <div className="text-2xl font-bold text-[hsl(249,83%,65%)]">2.9% + $0.30</div>
-                <div className="text-sm text-gray-500">per transaction</div>
+                <p className="text-gray-600 mb-4">Hybrid subscription + transaction fees with scalable pricing tiers</p>
+                <div className="text-2xl font-bold text-[hsl(249,83%,65%)]">0.9% - 2.9%</div>
+                <div className="text-sm text-gray-500">+ subscription revenue</div>
               </CardContent>
             </Card>
             
@@ -368,6 +368,169 @@ export default function Landing() {
                 <p className="text-gray-600 leading-relaxed">Easy integration for e-commerce stores to offer bpay as a payment option with comprehensive developer tools</p>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing Section */}
+      <div id="pricing" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <Badge className="mb-4 bg-purple-100 text-purple-700">Pricing Plans</Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Choose Your Perfect Plan
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transparent pricing that scales with your transaction volume. Start free, upgrade as you grow.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Freemium Plan */}
+            <Card className="p-8 relative hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-0">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
+                  <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">Free</div>
+                  <p className="text-gray-600">Perfect for getting started</p>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">2.9%</div>
+                    <div className="text-sm text-gray-600">per transaction</div>
+                  </div>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Up to $1,000/month volume</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">3 funding sources</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Basic bcards</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Email support</span>
+                  </li>
+                </ul>
+                
+                <Button className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200">
+                  Get Started Free
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="p-8 relative bg-[hsl(249,83%,65%)] text-white hover:shadow-xl transition-all duration-300 scale-105">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-[hsl(186,94%,44%)] text-white px-4 py-2 text-sm font-semibold">
+                  Most Popular
+                </Badge>
+              </div>
+              
+              <CardContent className="p-0">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold mb-2">Pro</h3>
+                  <div className="text-4xl font-bold mb-2">$9.99<span className="text-lg font-normal">/month</span></div>
+                  <p className="text-blue-100">For growing businesses</p>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">1.9%</div>
+                    <div className="text-sm text-blue-100">per transaction</div>
+                  </div>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
+                    <span>$1K - $10K monthly volume</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
+                    <span>Unlimited funding sources</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
+                    <span>Advanced analytics</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
+                    <span>Priority support</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
+                    <span>Browser extension</span>
+                  </li>
+                </ul>
+                
+                <Button className="w-full bg-white text-[hsl(249,83%,65%)] hover:bg-gray-50 font-semibold">
+                  Start Pro Trial
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Premium Plan */}
+            <Card className="p-8 relative hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-0">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
+                  <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">$19.99<span className="text-lg font-normal">/month</span></div>
+                  <p className="text-gray-600">For high-volume users</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(186,94%,44%)] rounded-lg p-4 mb-6">
+                  <div className="text-center text-white">
+                    <div className="text-2xl font-bold">0.9%</div>
+                    <div className="text-sm">per transaction</div>
+                  </div>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">$10K+ monthly volume</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Everything in Pro</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">API access</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Custom integrations</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Dedicated support</span>
+                  </li>
+                </ul>
+                
+                <Button className="w-full bg-[hsl(249,83%,65%)] text-white hover:bg-[hsl(249,83%,60%)]">
+                  Start Premium
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="text-center mt-16">
+            <p className="text-gray-600 mb-4">
+              Need custom volume pricing? Processing over $50K monthly?
+            </p>
+            <Button variant="outline" className="px-8 py-3">
+              Contact Enterprise Sales
+            </Button>
           </div>
         </div>
       </div>

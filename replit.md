@@ -125,6 +125,8 @@ Payment processing: Implement Stripe Issuing for card generation in production m
   - **Mobile-First Design**: Fully responsive with optimized typography and spacing for all device sizes
   - **Call-to-Action Optimization**: Strategic placement of signup buttons and demo links to maximize conversion
   - **Market Positioning**: Positioned bpay as innovative fintech solution with strong competitive advantages
+  - **Integrated Pricing Strategy**: Implemented new tiered pricing model with freemium, Pro ($9.99), and Premium ($19.99) plans
+  - **Transaction Fee Scaling**: Applied decreasing transaction fees (2.9% → 1.9% → 0.9%) based on subscription tier and volume
 
 - **Split Checkout Demo Pages**: Created separate demo pages with distinct URLs for different integration modes
   - **Addon Checkout Demo** (`/addon-checkout-demo`): Shows bpay integrated as embedded component within merchant checkout
