@@ -4,6 +4,9 @@ import {
   virtualCards,
   transactions,
   merchants,
+  paymentIntents,
+  webhookEvents,
+  merchantApiUsage,
   type User,
   type UpsertUser,
   type FundingSource,
@@ -14,6 +17,12 @@ import {
   type InsertTransaction,
   type Merchant,
   type InsertMerchant,
+  type PaymentIntent,
+  type InsertPaymentIntent,
+  type WebhookEvent,
+  type InsertWebhookEvent,
+  type MerchantApiUsage,
+  type InsertMerchantApiUsage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -44,8 +53,25 @@ export interface IStorage {
   
   // Merchants
   getMerchantsByUserId(userId: string): Promise<Merchant[]>;
+  getMerchantByApiKey(apiKey: string): Promise<Merchant | undefined>;
   createMerchant(merchant: InsertMerchant): Promise<Merchant>;
   updateMerchant(id: number, updates: Partial<InsertMerchant>): Promise<Merchant>;
+  
+  // Payment Intents
+  getPaymentIntentsByMerchantId(merchantId: number): Promise<PaymentIntent[]>;
+  getPaymentIntentByIntentId(intentId: string): Promise<PaymentIntent | undefined>;
+  createPaymentIntent(intent: InsertPaymentIntent): Promise<PaymentIntent>;
+  updatePaymentIntent(id: number, updates: Partial<InsertPaymentIntent>): Promise<PaymentIntent>;
+  
+  // Webhook Events
+  getWebhookEventsByMerchantId(merchantId: number): Promise<WebhookEvent[]>;
+  createWebhookEvent(event: InsertWebhookEvent): Promise<WebhookEvent>;
+  updateWebhookEvent(id: number, updates: Partial<InsertWebhookEvent>): Promise<WebhookEvent>;
+  getPendingWebhookEvents(): Promise<WebhookEvent[]>;
+  
+  // API Usage Tracking
+  trackApiUsage(usage: InsertMerchantApiUsage): Promise<MerchantApiUsage>;
+  getApiUsage(merchantId: number, date: string): Promise<MerchantApiUsage[]>;
   
   // Admin operations
   getAllUsers(): Promise<User[]>;
@@ -210,6 +236,130 @@ export class DatabaseStorage implements IStorage {
       .where(eq(merchants.id, id))
       .returning();
     return updatedMerchant;
+  }
+
+  async getMerchantByApiKey(apiKey: string): Promise<Merchant | undefined> {
+    const [merchant] = await db
+      .select()
+      .from(merchants)
+      .where(eq(merchants.secretApiKey, apiKey));
+    return merchant;
+  }
+
+  // Payment Intents
+  async getPaymentIntentsByMerchantId(merchantId: number): Promise<PaymentIntent[]> {
+    return await db
+      .select()
+      .from(paymentIntents)
+      .where(eq(paymentIntents.merchantId, merchantId))
+      .orderBy(desc(paymentIntents.createdAt));
+  }
+
+  async getPaymentIntentByIntentId(intentId: string): Promise<PaymentIntent | undefined> {
+    const [intent] = await db
+      .select()
+      .from(paymentIntents)
+      .where(eq(paymentIntents.intentId, intentId));
+    return intent;
+  }
+
+  async createPaymentIntent(intent: InsertPaymentIntent): Promise<PaymentIntent> {
+    const [newIntent] = await db
+      .insert(paymentIntents)
+      .values(intent)
+      .returning();
+    return newIntent;
+  }
+
+  async updatePaymentIntent(id: number, updates: Partial<InsertPaymentIntent>): Promise<PaymentIntent> {
+    const [updatedIntent] = await db
+      .update(paymentIntents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(paymentIntents.id, id))
+      .returning();
+    return updatedIntent;
+  }
+
+  // Webhook Events
+  async getWebhookEventsByMerchantId(merchantId: number): Promise<WebhookEvent[]> {
+    return await db
+      .select()
+      .from(webhookEvents)
+      .where(eq(webhookEvents.merchantId, merchantId))
+      .orderBy(desc(webhookEvents.createdAt));
+  }
+
+  async createWebhookEvent(event: InsertWebhookEvent): Promise<WebhookEvent> {
+    const [newEvent] = await db
+      .insert(webhookEvents)
+      .values(event)
+      .returning();
+    return newEvent;
+  }
+
+  async updateWebhookEvent(id: number, updates: Partial<InsertWebhookEvent>): Promise<WebhookEvent> {
+    const [updatedEvent] = await db
+      .update(webhookEvents)
+      .set(updates)
+      .where(eq(webhookEvents.id, id))
+      .returning();
+    return updatedEvent;
+  }
+
+  async getPendingWebhookEvents(): Promise<WebhookEvent[]> {
+    return await db
+      .select()
+      .from(webhookEvents)
+      .where(eq(webhookEvents.deliveryStatus, 'pending'))
+      .orderBy(desc(webhookEvents.createdAt));
+  }
+
+  // API Usage Tracking
+  async trackApiUsage(usage: InsertMerchantApiUsage): Promise<MerchantApiUsage> {
+    // Check if usage for this merchant/endpoint/date already exists
+    const [existingUsage] = await db
+      .select()
+      .from(merchantApiUsage)
+      .where(
+        and(
+          eq(merchantApiUsage.merchantId, usage.merchantId),
+          eq(merchantApiUsage.endpoint, usage.endpoint),
+          eq(merchantApiUsage.method, usage.method),
+          eq(merchantApiUsage.date, usage.date)
+        )
+      );
+
+    if (existingUsage) {
+      // Update existing record
+      const [updatedUsage] = await db
+        .update(merchantApiUsage)
+        .set({
+          requestCount: existingUsage.requestCount + (usage.requestCount || 1),
+          lastUsed: new Date()
+        })
+        .where(eq(merchantApiUsage.id, existingUsage.id))
+        .returning();
+      return updatedUsage;
+    } else {
+      // Create new record
+      const [newUsage] = await db
+        .insert(merchantApiUsage)
+        .values(usage)
+        .returning();
+      return newUsage;
+    }
+  }
+
+  async getApiUsage(merchantId: number, date: string): Promise<MerchantApiUsage[]> {
+    return await db
+      .select()
+      .from(merchantApiUsage)
+      .where(
+        and(
+          eq(merchantApiUsage.merchantId, merchantId),
+          eq(merchantApiUsage.date, date)
+        )
+      );
   }
 
   // Admin operations

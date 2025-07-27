@@ -99,11 +99,60 @@ export const merchants = pgTable("merchants", {
   businessName: varchar("business_name").notNull(),
   businessEmail: varchar("business_email").notNull(),
   website: varchar("website"),
-  apiKey: varchar("api_key").notNull(),
+  publicApiKey: varchar("public_api_key").notNull(), // pk_test_ or pk_live_
+  secretApiKey: varchar("secret_api_key").notNull(), // sk_test_ or sk_live_
+  webhookSecret: varchar("webhook_secret").notNull(),
   isActive: boolean("is_active").default(true),
   totalVolume: decimal("total_volume", { precision: 15, scale: 2 }).default("0"),
+  environment: varchar("environment").default("sandbox"), // sandbox, production
+  platformType: varchar("platform_type"), // wordpress, shopify, custom, etc.
+  allowedDomains: text("allowed_domains").array(), // CORS domains
+  rateLimits: jsonb("rate_limits"), // API rate limiting config
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Merchant API Keys (for tracking usage and rate limiting)
+export const merchantApiUsage = pgTable("merchant_api_usage", {
+  id: serial("id").primaryKey(),
+  merchantId: integer("merchant_id").references(() => merchants.id).notNull(),
+  endpoint: varchar("endpoint").notNull(),
+  method: varchar("method").notNull(),
+  requestCount: integer("request_count").default(1),
+  lastUsed: timestamp("last_used").defaultNow(),
+  date: varchar("date").notNull(), // YYYY-MM-DD for daily tracking
+});
+
+// Payment Intents (for merchant payment processing)
+export const paymentIntents = pgTable("payment_intents", {
+  id: serial("id").primaryKey(),
+  merchantId: integer("merchant_id").references(() => merchants.id).notNull(),
+  intentId: varchar("intent_id").notNull().unique(), // pi_xxxx
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency").default("USD"),
+  status: varchar("status").default("requires_payment_method"), // Stripe statuses
+  clientSecret: varchar("client_secret").notNull(),
+  metadata: jsonb("metadata"), // merchant-defined metadata
+  customerInfo: jsonb("customer_info"), // customer details
+  splitConfiguration: jsonb("split_configuration"), // how payment will be split
+  bcardId: integer("bcard_id").references(() => virtualCards.id),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Webhook Events (for merchant notifications)
+export const webhookEvents = pgTable("webhook_events", {
+  id: serial("id").primaryKey(),
+  merchantId: integer("merchant_id").references(() => merchants.id).notNull(),
+  eventType: varchar("event_type").notNull(), // payment.succeeded, payment.failed, etc.
+  eventData: jsonb("event_data").notNull(),
+  deliveryStatus: varchar("delivery_status").default("pending"), // pending, delivered, failed
+  deliveryAttempts: integer("delivery_attempts").default(0),
+  webhookUrl: varchar("webhook_url").notNull(),
+  nextRetryAt: timestamp("next_retry_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  deliveredAt: timestamp("delivered_at"),
 });
 
 // Relations
@@ -140,10 +189,38 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   }),
 }));
 
-export const merchantsRelations = relations(merchants, ({ one }) => ({
+export const merchantsRelations = relations(merchants, ({ one, many }) => ({
   user: one(users, {
     fields: [merchants.userId],
     references: [users.id],
+  }),
+  paymentIntents: many(paymentIntents),
+  webhookEvents: many(webhookEvents),
+  apiUsage: many(merchantApiUsage),
+}));
+
+export const paymentIntentsRelations = relations(paymentIntents, ({ one }) => ({
+  merchant: one(merchants, {
+    fields: [paymentIntents.merchantId],
+    references: [merchants.id],
+  }),
+  bcard: one(virtualCards, {
+    fields: [paymentIntents.bcardId],
+    references: [virtualCards.id],
+  }),
+}));
+
+export const webhookEventsRelations = relations(webhookEvents, ({ one }) => ({
+  merchant: one(merchants, {
+    fields: [webhookEvents.merchantId],
+    references: [merchants.id],
+  }),
+}));
+
+export const merchantApiUsageRelations = relations(merchantApiUsage, ({ one }) => ({
+  merchant: one(merchants, {
+    fields: [merchantApiUsage.merchantId],
+    references: [merchants.id],
   }),
 }));
 
@@ -182,3 +259,26 @@ export const insertMerchantSchema = createInsertSchema(merchants).omit({
 });
 export type InsertMerchant = z.infer<typeof insertMerchantSchema>;
 export type Merchant = typeof merchants.$inferSelect;
+
+export const insertPaymentIntentSchema = createInsertSchema(paymentIntents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertPaymentIntent = z.infer<typeof insertPaymentIntentSchema>;
+export type PaymentIntent = typeof paymentIntents.$inferSelect;
+
+export const insertWebhookEventSchema = createInsertSchema(webhookEvents).omit({
+  id: true,
+  createdAt: true,
+  deliveredAt: true,
+});
+export type InsertWebhookEvent = z.infer<typeof insertWebhookEventSchema>;
+export type WebhookEvent = typeof webhookEvents.$inferSelect;
+
+export const insertMerchantApiUsageSchema = createInsertSchema(merchantApiUsage).omit({
+  id: true,
+  lastUsed: true,
+});
+export type InsertMerchantApiUsage = z.infer<typeof insertMerchantApiUsageSchema>;
+export type MerchantApiUsage = typeof merchantApiUsage.$inferSelect;

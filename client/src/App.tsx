@@ -10,6 +10,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 
 import MerchantPortal from "@/pages/merchant-portal";
+import MerchantDashboard from "@/pages/merchant-dashboard";
 import AdminPanel from "@/pages/admin-panel";
 import PaymentDemo from "@/pages/payment-demo";
 import AddonCheckoutDemo from "@/pages/addon-checkout-demo";
@@ -33,6 +34,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/merchant-portal" component={MerchantPortal} />
+          <Route path="/merchant-dashboard" component={MerchantDashboard} />
           <Route path="/admin-panel" component={AdminPanel} />
         </>
       )}

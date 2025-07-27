@@ -7,6 +7,7 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import Stripe from "stripe";
 import { stripeIssuingService } from "./services/stripe-issuing";
+import { registerMerchantAPI } from "./merchant-api";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -909,6 +910,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Register Merchant API routes
+  registerMerchantAPI(app);
 
   const httpServer = createServer(app);
   return httpServer;

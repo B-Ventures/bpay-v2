@@ -42,18 +42,31 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 - **User Management**: Automatic user creation and profile management
 - **Role-based Access**: User, merchant, and admin roles
 
+### Merchant API System (NEW - 2025-01-28)
+- **REST API**: Complete merchant integration APIs following fintech standards
+- **Authentication**: Bearer token authentication with API keys (sk_test_/sk_live_)
+- **Payment Intents**: Core payment processing workflow with split configuration
+- **Webhooks**: Real-time event notifications with signature verification
+- **Rate Limiting**: 100 requests/minute per merchant with burst protection
+- **Platform Integrations**: WordPress/WooCommerce, Shopify, and custom implementations
+- **Merchant Dashboard**: Complete interface for API management and analytics
+
 ### Database Schema
 - **Users**: Profile information, roles, and Stripe customer data
 - **Funding Sources**: Credit cards, debit cards, and bank accounts
 - **Virtual Cards**: Generated cards with spending limits and merchant restrictions
 - **Transactions**: Payment history and transaction details
-- **Merchants**: Merchant profiles and business information
+- **Merchants**: Merchant profiles and business information with API keys
+- **Payment Intents**: Payment processing workflow objects (NEW)
+- **Webhook Events**: Event tracking and delivery status (NEW)
+- **API Usage**: Rate limiting and analytics tracking (NEW)
 - **Sessions**: Secure session management for authentication
 
 ### Payment Processing
 - **Primary Integration**: Stripe for payment processing
 - **Virtual Card Generation**: Custom virtual card creation with spending controls
 - **Payment Splitting**: Logic to distribute payments across multiple funding sources
+- **Merchant APIs**: RESTful payment processing for external integrations
 - **Transaction Tracking**: Comprehensive transaction history and reporting
 
 ### User Interface
@@ -61,6 +74,7 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 - **Funding Sources**: Management of payment methods
 - **Virtual Cards**: Creation and management of virtual cards
 - **Transactions**: History and filtering of payment activities
+- **Merchant Dashboard**: API key management, payment monitoring, integration guides (NEW)
 - **Admin Panel**: Administrative controls for user and merchant management
 
 ## Data Flow
