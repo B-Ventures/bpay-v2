@@ -171,7 +171,7 @@ class StripeIssuingService {
         });
         
         // Return Issuing available balance in dollars
-        const issuingBalance = balance.available?.find(b => b.source_types?.issuing_authorization);
+        const issuingBalance = balance.available?.find(b => (b.source_types as any)?.issuing);
         return (issuingBalance?.amount || 0) / 100;
       }
     } catch (error: any) {

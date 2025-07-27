@@ -7,19 +7,105 @@ import {
   fundingDeductionAttempts, transactions, fundingSources,
   insertSubscriptionTierSchema, insertKycVerificationSchema, insertPaymentVendorSchema
 } from "@shared/schema";
+import { z } from "zod";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 
-// Middleware to check admin role
-const requireAdmin = (req: any, res: any, next: any) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: "Admin access required" });
-  }
-  next();
+// Admin credentials - In production, store these securely
+const ADMIN_CREDENTIALS = {
+  username: process.env.ADMIN_USERNAME || "bpay_admin",
+  password: process.env.ADMIN_PASSWORD || "admin123!",
+  accessCode: process.env.ADMIN_ACCESS_CODE || "BPAY2025"
 };
 
-// Apply admin middleware to all routes
-router.use(requireAdmin);
+const JWT_SECRET = process.env.JWT_SECRET || "bpay_admin_secret_key_2025";
+
+// Admin login schema
+const adminLoginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+  accessCode: z.string().min(1),
+});
+
+// Admin authentication endpoint
+router.post("/auth/login", async (req, res) => {
+  try {
+    const { username, password, accessCode } = adminLoginSchema.parse(req.body);
+    
+    // Verify credentials
+    if (
+      username === ADMIN_CREDENTIALS.username &&
+      password === ADMIN_CREDENTIALS.password &&
+      accessCode === ADMIN_CREDENTIALS.accessCode
+    ) {
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          role: "admin", 
+          username,
+          loginTime: new Date().toISOString()
+        },
+        JWT_SECRET,
+        { expiresIn: "8h" }
+      );
+      
+      res.json({
+        success: true,
+        token,
+        message: "Admin authentication successful",
+        expiresIn: "8h"
+      });
+    } else {
+      res.status(401).json({
+        error: "Invalid admin credentials",
+        message: "Username, password, or access code is incorrect"
+      });
+    }
+  } catch (error) {
+    console.error("Admin login error:", error);
+    res.status(400).json({ error: "Invalid request format" });
+  }
+});
+
+// Middleware to verify admin JWT token
+const requireAdminToken = (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: "Admin token required" });
+  }
+  
+  const token = authHeader.substring(7);
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    req.admin = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid or expired admin token" });
+  }
+};
+
+// Token verification endpoint
+router.get("/auth/verify", requireAdminToken, (req: any, res) => {
+  res.json({
+    valid: true,
+    admin: {
+      username: req.admin.username,
+      loginTime: req.admin.loginTime,
+      role: req.admin.role
+    }
+  });
+});
+
+// Apply admin token middleware to all other routes
+router.use(requireAdminToken);
 
 // 1. CUSTOMER & MERCHANT MANAGEMENT
 
@@ -29,6 +115,16 @@ router.get("/users", async (req, res) => {
     const { page = 1, limit = 50, search, role, status } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     
+    let whereConditions = [];
+    
+    // Apply filters
+    if (search) {
+      whereConditions.push(like(users.email, `%${search}%`));
+    }
+    if (role) {
+      whereConditions.push(eq(users.role, role as string));
+    }
+
     let query = db.select({
       id: users.id,
       email: users.email,
@@ -40,14 +136,8 @@ router.get("/users", async (req, res) => {
       profileImageUrl: users.profileImageUrl,
     }).from(users);
 
-    // Apply filters
-    if (search) {
-      query = query.where(
-        like(users.email, `%${search}%`)
-      );
-    }
-    if (role) {
-      query = query.where(eq(users.role, role as string));
+    if (whereConditions.length > 0) {
+      query = query.where(and(...whereConditions));
     }
 
     const usersList = await query
@@ -228,7 +318,7 @@ router.patch("/kyc-verifications/:verificationId", async (req, res) => {
         status,
         notes,
         riskScore,
-        reviewedBy: req.user.id,
+        reviewedBy: req.admin.username,
         reviewedAt: new Date(),
       })
       .where(eq(kycVerifications.id, Number(verificationId)));
@@ -349,13 +439,13 @@ router.get("/dashboard", async (req, res) => {
 
     res.json({
       revenue: {
-        total: totalRevenue[0]?.total || 0,
+        total: Number(totalRevenue[0]?.total || 0),
       },
       transactions: {
-        volume: transactionVolume[0]?.total || 0,
+        volume: Number(transactionVolume[0]?.total || 0),
       },
       fundingPool: {
-        balance: (fundingPoolBalance[0]?.deposits || 0) - (fundingPoolWithdrawals[0]?.withdrawals || 0),
+        balance: Number(fundingPoolBalance[0]?.deposits || 0) - Number(fundingPoolWithdrawals[0]?.withdrawals || 0),
       },
       bcardGeneration: {
         total: bcardStats[0]?.total || 0,
@@ -386,7 +476,7 @@ router.get("/bcard-generations", async (req, res) => {
     const { page = 1, limit = 20, status } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     
-    let query = db.select({
+    let bcardQuery = db.select({
       id: bcardGenerationAttempts.id,
       userId: bcardGenerationAttempts.userId,
       requestedAmount: bcardGenerationAttempts.requestedAmount,
@@ -407,10 +497,10 @@ router.get("/bcard-generations", async (req, res) => {
     .leftJoin(users, eq(bcardGenerationAttempts.userId, users.id));
 
     if (status) {
-      query = query.where(eq(bcardGenerationAttempts.status, status as string));
+      bcardQuery = bcardQuery.where(eq(bcardGenerationAttempts.status, status as string));
     }
 
-    const generations = await query
+    const generations = await bcardQuery
       .orderBy(desc(bcardGenerationAttempts.createdAt))
       .limit(Number(limit))
       .offset(offset);
@@ -428,7 +518,7 @@ router.get("/funding-deductions", async (req, res) => {
     const { page = 1, limit = 20, status } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     
-    let query = db.select({
+    let deductionQuery = db.select({
       id: fundingDeductionAttempts.id,
       bcardGenerationId: fundingDeductionAttempts.bcardGenerationId,
       fundingSourceId: fundingDeductionAttempts.fundingSourceId,
@@ -449,10 +539,10 @@ router.get("/funding-deductions", async (req, res) => {
     .leftJoin(fundingSources, eq(fundingDeductionAttempts.fundingSourceId, fundingSources.id));
 
     if (status) {
-      query = query.where(eq(fundingDeductionAttempts.status, status as string));
+      deductionQuery = deductionQuery.where(eq(fundingDeductionAttempts.status, status as string));
     }
 
-    const deductions = await query
+    const deductions = await deductionQuery
       .orderBy(desc(fundingDeductionAttempts.createdAt))
       .limit(Number(limit))
       .offset(offset);

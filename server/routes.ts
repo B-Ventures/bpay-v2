@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import Stripe from "stripe";
 import { stripeIssuingService } from "./services/stripe-issuing";
 import { registerMerchantAPI } from "./merchant-api";
+import adminApi from "./admin-api";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -313,8 +314,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        phoneNumber: user.phoneNumber,
-        address: user.address
+        phoneNumber: user.phoneNumber || undefined,
+        address: user.address || undefined
       });
 
       // Step 3: Define spending controls for the bcard
