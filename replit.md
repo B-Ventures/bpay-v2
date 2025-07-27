@@ -147,6 +147,7 @@ Payment processing: Implement Stripe Issuing for card generation in production m
   - **Mobile Menu**: Implemented proper hamburger menu icon (placeholder functionality)
   - **Company Information**: Updated footer with B Ventures LLC copyright and contact details
   - **Contact Details**: Added phone (+1-551-375-8915), email (hello@getbpay.com), and Wyoming address
+  - **Demo Terminology**: Updated button text from "Live Demo"/"Extension Demo" to "Merchant Demo"/"Customer Demo" for clearer user understanding
 - **Popup Profile Interface for Addon Mode**: Implemented comprehensive popup-style profile interface for seamless addon integration
   - **ProfilePopup Component**: Created dedicated popup component with full profile viewing and editing capabilities
   - **Integrated User Menu**: Profile access through dashboard user menu with proper authentication handling

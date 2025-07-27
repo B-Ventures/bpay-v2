@@ -20,7 +20,7 @@ export default function Investors() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-center space-x-6">
                 <a href="/" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Home</a>
-                <a href="/addon-checkout-demo" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Demo</a>
+                <a href="/addon-checkout-demo" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Merchant Demo</a>
                 <Button variant="ghost" onClick={() => window.location.href = "/api/login"} className="text-gray-600">
                   Sign In
                 </Button>

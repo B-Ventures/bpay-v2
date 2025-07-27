@@ -22,7 +22,7 @@ export default function Landing() {
                 <a href="#how-it-works" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">How It Works</a>
                 <a href="/investors" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">For Investors</a>
                 <a href="#features" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Features</a>
-                <a href="/addon-checkout-demo" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Live Demo</a>
+                <a href="/addon-checkout-demo" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">Merchant Demo</a>
                 <Button variant="ghost" onClick={() => window.location.href = "/api/login"} className="text-gray-600">
                   Sign In
                 </Button>
@@ -94,7 +94,7 @@ export default function Landing() {
                 className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                Try Live Demo
+                Merchant Demo
               </Button>
             </div>
             
@@ -463,7 +463,7 @@ export default function Landing() {
               onClick={() => window.location.href = "/banner-checkout-demo"}
               className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
             >
-              Try Extension Demo
+              Customer Demo
             </Button>
           </div>
         </div>
@@ -492,8 +492,8 @@ export default function Landing() {
               <ul className="space-y-2 text-gray-300">
                 <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="/addon-checkout-demo" className="hover:text-white transition-colors">Live Demo</a></li>
-                <li><a href="/banner-checkout-demo" className="hover:text-white transition-colors">Extension Demo</a></li>
+                <li><a href="/addon-checkout-demo" className="hover:text-white transition-colors">Merchant Demo</a></li>
+                <li><a href="/banner-checkout-demo" className="hover:text-white transition-colors">Customer Demo</a></li>
               </ul>
             </div>
             
