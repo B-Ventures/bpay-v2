@@ -135,11 +135,13 @@ export default function Landing() {
           
           <div className="grid md:grid-cols-3 gap-12">
             <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(258,70%,68%)] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <Plus className="text-white h-10 w-10" />
+              <div className="mb-8">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(258,70%,68%)] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Plus className="text-white h-10 w-10" />
+                  </div>
+                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-white border-4 border-blue-500 text-blue-500 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">1</div>
                 </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Connect Your Cards</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
@@ -148,11 +150,13 @@ export default function Landing() {
             </div>
             
             <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-gradient-to-r from-[hsl(258,70%,68%)] to-[hsl(186,94%,44%)] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <Target className="text-white h-10 w-10" />
+              <div className="mb-8">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-[hsl(258,70%,68%)] to-[hsl(186,94%,44%)] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Target className="text-white h-10 w-10" />
+                  </div>
+                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-white border-4 border-blue-500 text-blue-500 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">2</div>
                 </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Set Your Split</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
@@ -161,11 +165,13 @@ export default function Landing() {
             </div>
             
             <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-gradient-to-r from-[hsl(186,94%,44%)] to-[hsl(249,83%,65%)] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <ShoppingCart className="text-white h-10 w-10" />
+              <div className="mb-8">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-[hsl(186,94%,44%)] to-[hsl(249,83%,65%)] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <ShoppingCart className="text-white h-10 w-10" />
+                  </div>
+                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-white border-4 border-blue-500 text-blue-500 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">3</div>
                 </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Shop Everywhere</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
