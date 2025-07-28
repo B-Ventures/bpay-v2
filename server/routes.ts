@@ -9,6 +9,7 @@ import Stripe from "stripe";
 import { stripeIssuingService } from "./services/stripe-issuing";
 import { registerMerchantAPI } from "./merchant-api";
 import adminApi from "./admin-api";
+import { validateFundingSourceCreation, getSubscriptionBenefits } from "./services/funding-security";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -122,11 +123,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate required fields
-      const { cardNumber, expiryMonth, expiryYear, cvv, name } = req.body;
-      if (!cardNumber || !expiryMonth || !expiryYear || !cvv || !name) {
+      const { cardNumber, expiryMonth, expiryYear, cvv, name, cardholderName } = req.body;
+      if (!cardNumber || !expiryMonth || !expiryYear || !cvv || !name || !cardholderName) {
         return res.status(400).json({ 
-          message: "Missing required fields: cardNumber, expiryMonth, expiryYear, cvv, name",
+          message: "Missing required fields: cardNumber, expiryMonth, expiryYear, cvv, name, cardholderName",
           receivedFields: Object.keys(req.body)
+        });
+      }
+
+      // Security validation for subscription tier limits and name verification
+      const validation = await validateFundingSourceCreation(userId, cardholderName);
+      if (!validation.isValid) {
+        return res.status(400).json({ 
+          message: validation.error,
+          type: "security_validation"
         });
       }
 
@@ -190,9 +200,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertFundingSourceSchema.parse({
         userId,
         name: req.body.name || `${req.body.brand?.toUpperCase() || 'CARD'} ••••${req.body.last4 || cardNumber.slice(-4)}`,
+        cardholderName: cardholderName.trim(),
         type: req.body.type || 'credit_card',
         last4: req.body.last4 || cardNumber.slice(-4),
         brand: req.body.brand || getBrandFromNumber(cardNumber),
+        isNameVerified: true, // Set to true since we validated it above
         balance: "100.00", // Mock balance for testing
         defaultSplitPercentage: req.body.defaultSplitPercentage || 0,
         stripePaymentMethodId: paymentMethod.id,
@@ -448,6 +460,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching card checkout details:", error);
       res.status(500).json({ message: "Failed to fetch card details" });
+    }
+  });
+
+  // Get subscription benefits endpoint
+  app.get('/api/subscription/benefits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const tier = user.subscriptionTier || 'free';
+      const benefits = getSubscriptionBenefits(tier);
+      
+      res.json({
+        currentTier: tier,
+        benefits,
+        upgradeAvailable: tier === 'free'
+      });
+    } catch (error) {
+      console.error("Error fetching subscription benefits:", error);
+      res.status(500).json({ message: "Failed to fetch subscription benefits" });
     }
   });
 

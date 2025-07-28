@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
+import { FundingSourceSecurityBanner } from "@/components/FundingSourceSecurityBanner";
 
 interface AddFundingModalProps {
   isOpen: boolean;
@@ -22,6 +23,18 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { register, handleSubmit, setValue, watch, reset } = useForm();
+
+  // Fetch subscription benefits for security validation
+  const { data: subscriptionData } = useQuery({
+    queryKey: ["/api/subscription/benefits"],
+    enabled: !!user,
+  });
+
+  // Fetch current funding sources to check limits
+  const { data: fundingSources = [] } = useQuery({
+    queryKey: ["/api/funding-sources"],
+    enabled: !!user,
+  });
 
   // Format card number with spaces (4-4-4-4 pattern)
   const formatCardNumber = (value: string) => {
@@ -111,10 +124,17 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
       reset();
       onClose();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      let errorMessage = error.message;
+      
+      // Handle security validation errors with more specific messaging
+      if (error.response?.json?.type === "security_validation") {
+        errorMessage = error.response.json.message;
+      }
+      
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -164,6 +184,17 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
         <DialogHeader>
           <DialogTitle>Add Funding Source</DialogTitle>
         </DialogHeader>
+        
+        {/* Security Banner */}
+        {subscriptionData && (
+          <FundingSourceSecurityBanner
+            currentTier={subscriptionData.currentTier}
+            currentCount={fundingSources.length}
+            maxAllowed={subscriptionData.benefits.maxFundingSources}
+            nameVerificationRequired={subscriptionData.benefits.nameVerificationRequired}
+          />
+        )}
+        
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="cardNumber">Card Number</Label>
@@ -238,9 +269,16 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
             <Button 
               type="submit" 
               className="bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)]"
-              disabled={mutation.isPending}
+              disabled={
+                mutation.isPending || 
+                (subscriptionData?.benefits.maxFundingSources !== -1 && 
+                 fundingSources.length >= subscriptionData?.benefits.maxFundingSources)
+              }
             >
-              {mutation.isPending ? "Adding..." : "Add Source"}
+              {mutation.isPending ? "Adding..." : 
+               (subscriptionData?.benefits.maxFundingSources !== -1 && 
+                fundingSources.length >= subscriptionData?.benefits.maxFundingSources) ? 
+                "Limit Reached" : "Add Source"}
             </Button>
           </div>
         </form>

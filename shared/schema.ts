@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   phoneNumber: varchar("phone_number"),
   address: jsonb("address"), // For Stripe Issuing cardholder creation
   role: varchar("role").default("user"), // user, merchant, admin
+  subscriptionTier: varchar("subscription_tier").default("free"), // free, pro, premium
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   country: varchar("country"),
@@ -47,12 +48,14 @@ export const fundingSources = pgTable("funding_sources", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   name: varchar("name").notNull(),
+  cardholderName: varchar("cardholder_name").notNull(), // Name on the card/account for verification
   type: varchar("type").notNull(), // credit_card, debit_card, bank_account
   last4: varchar("last4").notNull(),
   expiryMonth: integer("expiry_month"),
   expiryYear: integer("expiry_year"),
   brand: varchar("brand"), // visa, mastercard, etc.
   isActive: boolean("is_active").default(true),
+  isNameVerified: boolean("is_name_verified").default(false), // Security check for name matching
   balance: decimal("balance", { precision: 10, scale: 2 }).default("100.00"), // Mock balance for testing
   defaultSplitPercentage: decimal("default_split_percentage", { precision: 5, scale: 2 }).default("0"),
   stripePaymentMethodId: varchar("stripe_payment_method_id"),
@@ -382,6 +385,11 @@ export const insertFundingSourceSchema = createInsertSchema(fundingSources).omit
 });
 export type InsertFundingSource = z.infer<typeof insertFundingSourceSchema>;
 export type FundingSource = typeof fundingSources.$inferSelect;
+
+// Add subscription tier benefits API endpoint schema
+export const subscriptionBenefitsSchema = z.object({
+  tier: z.enum(['free', 'pro', 'premium']),
+});
 
 export const insertVirtualCardSchema = createInsertSchema(virtualCards).omit({
   id: true,
