@@ -20,10 +20,10 @@ export default function LandingAr() {
             </div>
             <div className="hidden md:block">
               <div className="mr-10 flex items-center space-x-6 space-x-reverse">
-                <a href="#how-it-works" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">كيف يعمل</a>
+                <a href="#how-it-works" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">كيف يعمل؟</a>
                 <a href="/investors-ar" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">للمستثمرين</a>
                 <a href="#features" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">المميزات</a>
-                <a href="/addon-checkout-demo" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">تجربة التاجر</a>
+                <a href="/addon-checkout-demo" className="text-gray-600 hover:text-[hsl(249,83%,65%)] px-3 py-2 rounded-md text-sm font-medium transition-colors">تجربة كتاجر</a>
                 <Button variant="ghost" onClick={() => window.location.href = "/api/login"} className="text-gray-600">
                   تسجيل الدخول
                 </Button>
@@ -61,7 +61,7 @@ export default function LandingAr() {
                 className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                كيف يعمل
+                كيف يعمل؟
               </a>
               <a 
                 href="/investors-ar" 
@@ -82,7 +82,7 @@ export default function LandingAr() {
                 className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                تجربة التاجر
+                تجربة كتاجر
               </a>
               <div className="pt-4 border-t border-gray-200 mt-4">
                 <Button 
@@ -130,7 +130,7 @@ export default function LandingAr() {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
-              قسّم أي دفعة<br />
+              قسّم أي دفعة كما ترغب<br />
               <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
                 عبر بطاقات متعددة
               </span>
@@ -156,22 +156,22 @@ export default function LandingAr() {
                 className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
               >
                 <ShoppingCart className="ml-2 h-5 w-5" />
-                تجربة التاجر
+                تجربة كتاجر
               </Button>
             </div>
             
             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
-                <div className="text-3xl font-bold">2.5 مليون$+</div>
-                <div className="text-blue-100 text-sm">مدفوعات معالجة</div>
+                <div className="text-3xl font-bold">+2.5 مليون دولار</div>
+                <div className="text-blue-100 text-sm">قيمة حركات</div>
               </div>
               <div>
                 <div className="text-3xl font-bold">99.9%</div>
                 <div className="text-blue-100 text-sm">وقت التشغيل</div>
               </div>
               <div>
-                <div className="text-3xl font-bold">500+</div>
-                <div className="text-blue-100 text-sm">التجار الشركاء</div>
+                <div className="text-3xl font-bold">+500</div>
+                <div className="text-blue-100 text-sm">متجر مرتبط</div>
               </div>
               <div>
                 <div className="text-3xl font-bold">4.9★</div>
@@ -186,12 +186,12 @@ export default function LandingAr() {
       <div id="how-it-works" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-            <Badge className="mb-4 bg-blue-100 text-blue-700">كيف يعمل</Badge>
+            <Badge className="mb-4 bg-blue-100 text-blue-700">كيف يعمل؟</Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              تقسيم المدفوعات بطريقة مبسطة
+              ثلاث خطوات بسيطة للدفع الذكي
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              ثلاث خطوات سهلة للبدء في استخدام مصادر تمويل متعددة لأي مشترى
+              من تحضير بطاقات التمويل إلى إتمام الدفع - تجربة محسنة في دقائق.
             </p>
           </div>
           
@@ -205,9 +205,9 @@ export default function LandingAr() {
                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-white border-4 border-blue-500 text-blue-500 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">1</div>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">اربط بطاقاتك</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">ربط مصادر التمويل</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
-                اربط بطاقاتك الائتمانية والمصرفية وحساباتك البنكية بأمان مع حساب bpay الخاص بك
+                اربط بطاقات ائتمان متعددة، حسابات مصرفية، أو محافظ رقمية بحساب bpay واحد آمن.
               </p>
             </div>
             
@@ -220,9 +220,9 @@ export default function LandingAr() {
                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-white border-4 border-blue-500 text-blue-500 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">2</div>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">حدد التقسيمة</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">إنشاء تقسيمات ذكية</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
-                اختر كم يجب أن تساهم كل بطاقة — بالنسبة المئوية أو بمبالغ ثابتة
+                اختر كيفية تقسيم المدفوعات - بالنسبة المئوية، المبالغ الثابتة، أو استراتيجيات تقسيم ذكية.
               </p>
             </div>
             
@@ -235,9 +235,9 @@ export default function LandingAr() {
                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-white border-4 border-blue-500 text-blue-500 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">3</div>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">تسوق في كل مكان</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">إتمام معاملات الدفع</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
-                استخدم bcard في أي متجر إلكتروني أو دع إضافة المتصفح تقسم المدفوعات تلقائياً
+                اتمم دفعاتك بطريقة سلسة مع بطاقات bcards واستخدمها في أي موقع تسوق.
               </p>
             </div>
           </div>
@@ -263,12 +263,12 @@ export default function LandingAr() {
       <div id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-            <Badge className="mb-4 bg-blue-100 text-blue-700">مميزات المنصة</Badge>
+            <Badge className="mb-4 bg-blue-100 text-blue-700">المميزات الرئيسية</Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              مصممة للمستهلك العصري
+              المميزات المصممة للمدفوعات الحديثة
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              مميزات شاملة مصممة لتبسيط سيناريوهات الدفع المعقدة
+              تجربة شاملة من مصادر التمويل المتعددة إلى إدارة المعاملات المتقدمة.
             </p>
           </div>
           
@@ -278,8 +278,8 @@ export default function LandingAr() {
                 <div className="w-12 h-12 bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(258,70%,68%)] rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Globe className="text-white h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-900">إضافة المتصفح</h3>
-                <p className="text-gray-600 leading-relaxed">تكتشف تلقائياً صفحات الدفع وتمكن تقسيم المدفوعات بنقرة واحدة عبر أي موقع تاجر</p>
+                <h3 className="text-xl font-bold mb-4 text-gray-900">تقسيم ذكي</h3>
+                <p className="text-gray-600 leading-relaxed">خوارزميات متقدمة تحسن كيفية تقسيم المدفوعات عبر مصادر التمويل بناءً على الرصيد والحدود والمكافآت</p>
               </CardContent>
             </Card>
             
@@ -288,8 +288,8 @@ export default function LandingAr() {
                 <div className="w-12 h-12 bg-gradient-to-r from-[hsl(258,70%,68%)] to-[hsl(186,94%,44%)] rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <CreditCard className="text-white h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-900">بطاقات bcard ذكية</h3>
-                <p className="text-gray-600 leading-relaxed">أنشئ بطاقات bcard آمنة ممولة من مصادر الدفع المدمجة مع حدود إنفاق قابلة للتخصيص وقيود التجار</p>
+                <h3 className="text-xl font-bold mb-4 text-gray-900">بطاقات دفع فورية</h3>
+                <p className="text-gray-600 leading-relaxed">إنشئ بطاقة bcards آمنة فورية لكل معاملة مع حدود إنفاق قابلة للتخصيص</p>
               </CardContent>
             </Card>
             
@@ -298,8 +298,8 @@ export default function LandingAr() {
                 <div className="w-12 h-12 bg-gradient-to-r from-[hsl(186,94%,44%)] to-[hsl(249,83%,65%)] rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <PieChart className="text-white h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-900">تحليلات ذكية</h3>
-                <p className="text-gray-600 leading-relaxed">تتبع أنماط الإنفاق عبر جميع مصادر التمويل وحسن استراتيجيات الدفع مع رؤى مفصلة</p>
+                <h3 className="text-xl font-bold mb-4 text-gray-900">معالجة فورية</h3>
+                <p className="text-gray-600 leading-relaxed">معالجة معاملات فورية مع تحديثات مباشرة لأرصدة الحسابات وحالة المعاملات</p>
               </CardContent>
             </Card>
             
@@ -345,7 +345,7 @@ export default function LandingAr() {
               اختر خطتك المثالية
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              تسعير شفاف يتناسب مع حجم معاملاتك. ابدأ مجاناً، ترقّ مع نموك.
+              تسعير واضح يتناسب مع حجم معاملاتك. ابدأ مجاناً، ترقّ مع نموك.
             </p>
           </div>
           
@@ -356,13 +356,13 @@ export default function LandingAr() {
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">البداية</h3>
                   <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">مجاني</div>
-                  <p className="text-gray-600">مثالي للبدء</p>
+                  <p className="text-gray-600">مثالية للناشئين والاستخدام القليل</p>
                 </div>
                 
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">2.9%</div>
-                    <div className="text-sm text-gray-600">لكل معاملة</div>
+                    <div className="text-sm text-gray-600">لكل حركة</div>
                   </div>
                 </div>
                 
@@ -376,15 +376,15 @@ export default function LandingAr() {
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
-                    <span className="text-gray-700">إضافة المتصفح</span>
+                    <span className="text-gray-700">أداة المتصفح</span>
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
-                    <span className="text-gray-700">إضافة المتجر</span>
+                    <span className="text-gray-700">أداة المتاجر</span>
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
-                    <span className="text-gray-700">دعم البريد الإلكتروني</span>
+                    <span className="text-gray-700">دعم فني عبر البريد الإلكتروني</span>
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                 </ul>
@@ -410,19 +410,19 @@ export default function LandingAr() {
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold mb-2">احترافي</h3>
                   <div className="text-4xl font-bold mb-2">9.99$<span className="text-lg font-normal">/شهر</span></div>
-                  <p className="text-blue-100">للمستخدمين المتقدمين</p>
+                  <p className="text-blue-100">مثالية للاستخدام العادي إلى الكثيف</p>
                 </div>
                 
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6">
                   <div className="text-center">
                     <div className="text-2xl font-bold">2.9%</div>
-                    <div className="text-sm text-blue-100">لكل معاملة</div>
+                    <div className="text-sm text-blue-100">لكل حركة</div>
                   </div>
                 </div>
                 
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center justify-end">
-                    <span>كل شيء في البداية</span>
+                    <span>كل شيء من خطة البداية</span>
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
@@ -430,7 +430,7 @@ export default function LandingAr() {
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
-                    <span>معالجة دفع محسنة</span>
+                    <span>معالجة حركات محسنة</span>
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
@@ -438,7 +438,7 @@ export default function LandingAr() {
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
-                    <span>دعم أولوية</span>
+                    <span>دعم فني أولوية</span>
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                 </ul>
@@ -458,23 +458,23 @@ export default function LandingAr() {
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">بريميوم</h3>
                   <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">19.99$<span className="text-lg font-normal">/شهر</span></div>
-                  <p className="text-gray-600">للمستخدمين المميزين</p>
+                  <p className="text-gray-600">مثالية للاستخدام الثقيل والشركات</p>
                 </div>
                 
                 <div className="bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(186,94%,44%)] rounded-lg p-4 mb-6">
                   <div className="text-center text-white">
                     <div className="text-2xl font-bold">1.9%</div>
-                    <div className="text-sm">لكل معاملة</div>
+                    <div className="text-sm">لكل حركة</div>
                   </div>
                 </div>
                 
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center justify-end">
-                    <span className="text-gray-700">كل شيء في الاحترافي</span>
+                    <span className="text-gray-700">كل شيء من الخطة الاحترافية</span>
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
-                    <span className="text-gray-700">تكامل API</span>
+                    <span className="text-gray-700">تكامل API متقدم</span>
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
@@ -486,7 +486,7 @@ export default function LandingAr() {
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                   <li className="flex items-center justify-end">
-                    <span className="text-gray-700">دعم مخصص</span>
+                    <span className="text-gray-700">دعم فني مخصص ومباشر</span>
                     <Check className="text-green-500 h-5 w-5 ml-3 flex-shrink-0" />
                   </li>
                 </ul>
@@ -503,10 +503,10 @@ export default function LandingAr() {
           
           <div className="text-center mt-16">
             <p className="text-gray-600 mb-4">
-              تحتاج تسعير حجم مخصص؟ تعالج أكثر من 100 ألف دولار شهرياً؟
+              تحتاج تسعير مخصص أو تعالج أكثر من $100 ألف شهرياً؟
             </p>
             <Button className="border-2 border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)] bg-transparent hover:bg-[hsl(249,83%,65%)] hover:text-white px-8 py-3 transition-all duration-300">
-              اتصل بمبيعات المؤسسات
+              تواصل مع فريق المؤسسات
             </Button>
           </div>
         </div>
@@ -516,10 +516,10 @@ export default function LandingAr() {
       <div className="py-24 bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(186,94%,44%)] text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            جاهز لتقسيم دفعتك التالية؟
+            جاهز لثورة في طريقة الدفع؟
           </h2>
           <p className="text-xl mb-12 text-blue-50">
-            انضم لآلاف المستخدمين الذين اكتشفوا بالفعل قوة تقسيم المدفوعات الذكي.
+            انضم لآلاف المستخدمين الذين يستفيدون من تقسيم الدفع الذكي.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button 
@@ -535,7 +535,7 @@ export default function LandingAr() {
               onClick={() => window.location.href = "/banner-checkout-demo"}
               className="border-2 border-white text-white hover:bg-white hover:text-[hsl(249,83%,65%)] backdrop-blur-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
             >
-              تجربة العميل
+              تجربة كعميل
             </Button>
           </div>
         </div>
@@ -551,17 +551,17 @@ export default function LandingAr() {
                 <span className="text-2xl font-bold">bpay</span>
               </div>
               <p className="text-gray-300 mb-6 max-w-md">
-                منصة الدفع الذكية التي تثور كيفية تقسيم المدفوعات عبر مصادر تمويل متعددة.
+                منصة الدفع الذكية التي تثور كيفية تقسيم الحركات عبر مصادر تمويل متعددة.
               </p>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold mb-4">المنتج</h3>
               <ul className="space-y-2 text-gray-300">
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">كيف يعمل</a></li>
+                <li><a href="#how-it-works" className="hover:text-white transition-colors">كيف يعمل؟</a></li>
                 <li><a href="#features" className="hover:text-white transition-colors">المميزات</a></li>
-                <li><a href="/addon-checkout-demo" className="hover:text-white transition-colors">تجربة التاجر</a></li>
-                <li><a href="/banner-checkout-demo" className="hover:text-white transition-colors">تجربة العميل</a></li>
+                <li><a href="/addon-checkout-demo" className="hover:text-white transition-colors">تجربة كتاجر</a></li>
+                <li><a href="/banner-checkout-demo" className="hover:text-white transition-colors">تجربة كعميل</a></li>
               </ul>
             </div>
             
@@ -587,7 +587,7 @@ export default function LandingAr() {
           </div>
           
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 B Ventures LLC. جميع الحقوق محفوظة. مبني بالبنية التحتية المالية الحديثة.</p>
+            <p>&copy; 2025 B Ventures LLC. جميع الحقوق محفوظة. مطور بأحدث البنية التحتية المالية.</p>
           </div>
         </div>
       </footer>
