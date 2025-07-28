@@ -309,6 +309,14 @@ export default function Landing() {
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Browser extension</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Store Addon</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
                     <span className="text-gray-700">Email support</span>
                   </li>
                 </ul>
@@ -364,10 +372,6 @@ export default function Landing() {
                   <li className="flex items-center">
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
                     <span>Priority support</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
-                    <span>Browser extension</span>
                   </li>
                 </ul>
                 
