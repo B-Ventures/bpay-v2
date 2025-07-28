@@ -14,7 +14,6 @@ export default function Landing() {
               <div className="flex-shrink-0 flex items-center">
                 <Zap className="text-[hsl(249,83%,65%)] h-8 w-8 mr-2" />
                 <span className="text-2xl font-bold text-gray-900">bpay</span>
-                <Badge variant="secondary" className="ml-3 text-xs bg-green-100 text-green-700">Live Platform</Badge>
               </div>
             </div>
             <div className="hidden md:block">
@@ -491,10 +490,6 @@ export default function Landing() {
               <p className="text-gray-300 mb-6 max-w-md">
                 The smart payment platform that revolutionizes how you split payments across multiple funding sources.
               </p>
-              <div className="flex space-x-4">
-                <Badge className="bg-gray-800 text-gray-300">Live Platform</Badge>
-                <Badge className="bg-green-900 text-green-300">Processing Payments</Badge>
-              </div>
             </div>
             
             <div>
