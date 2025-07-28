@@ -15,6 +15,7 @@ import {
   Building2,
   CheckCircle
 } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function InvestorsAr() {
   return (
@@ -29,11 +30,12 @@ export default function InvestorsAr() {
               <Badge className="mr-3 bg-green-100 text-green-700 border-green-200">منصة مباشرة</Badge>
             </div>
             <div className="hidden md:flex items-center space-x-8 space-x-reverse">
-              <a href="/ar" className="text-gray-600 hover:text-gray-900 transition-colors">العربية</a>
-              <a href="/investors" className="text-gray-600 hover:text-gray-900 transition-colors">English</a>
+              <a href="/ar" className="text-gray-600 hover:text-gray-900 transition-colors">الرئيسية</a>
+              <a href="/addon-checkout-demo" className="text-gray-600 hover:text-gray-900 transition-colors">تجربة التاجر</a>
               <Button onClick={() => window.location.href = "/api/login"} className="bg-[hsl(249,83%,65%)] text-white hover:bg-[hsl(249,83%,60%)]">
                 تسجيل الدخول
               </Button>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>

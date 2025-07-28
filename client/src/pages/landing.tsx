@@ -2,6 +2,7 @@ import { CreditCard, Plus, PieChart, ShoppingCart, Globe, Shield, Smartphone, St
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useState } from "react";
 
 export default function Landing() {
@@ -30,6 +31,7 @@ export default function Landing() {
                 <Button onClick={() => window.location.href = "/api/login"} className="bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] shadow-lg">
                   Start Free
                 </Button>
+                <LanguageSwitcher />
               </div>
             </div>
             <div className="md:hidden">
@@ -100,10 +102,13 @@ export default function Landing() {
                     window.location.href = "/api/login";
                     setIsMobileMenuOpen(false);
                   }} 
-                  className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] shadow-lg"
+                  className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] shadow-lg mb-2"
                 >
                   Start Free
                 </Button>
+                <div className="flex justify-center">
+                  <LanguageSwitcher />
+                </div>
               </div>
             </div>
           </div>

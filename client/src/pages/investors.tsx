@@ -2,6 +2,7 @@ import { TrendingUp, Users, Building2, Target, Shield, Clock, ArrowRight, Zap, X
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useState } from "react";
 
 export default function Investors() {
@@ -28,6 +29,7 @@ export default function Investors() {
                 <Button onClick={() => window.location.href = "/api/login"} className="bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] text-white shadow-lg">
                   Start Free
                 </Button>
+                <LanguageSwitcher />
               </div>
             </div>
             <div className="md:hidden">

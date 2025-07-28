@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { DemoModeProvider } from "@/components/providers/demo-mode-provider";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import LandingAr from "@/pages/landing-ar";
@@ -54,12 +55,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <DemoModeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </DemoModeProvider>
+      <LanguageProvider>
+        <DemoModeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </DemoModeProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
