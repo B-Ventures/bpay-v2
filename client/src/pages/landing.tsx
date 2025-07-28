@@ -415,6 +415,10 @@ export default function Landing() {
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Advanced payment workflows</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
                     <span className="text-gray-700">Dedicated support</span>
                   </li>
                 </ul>
