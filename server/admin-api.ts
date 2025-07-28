@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { eq, desc, count, sum, and, gte, lte, like } from "drizzle-orm";
+import { eq, desc, count, sum, and, gte, lte, like, sql } from "drizzle-orm";
 import { db } from "./db";
 import { 
   users, merchants, userSubscriptions, subscriptionTiers, kycVerifications,
   paymentVendors, revenueEntries, fundingPoolEntries, bcardGenerationAttempts,
-  fundingDeductionAttempts, transactions, fundingSources,
+  fundingDeductionAttempts, transactions, fundingSources, virtualCards,
   insertSubscriptionTierSchema, insertKycVerificationSchema, insertPaymentVendorSchema
 } from "@shared/schema";
 import { z } from "zod";
@@ -386,7 +386,7 @@ router.get("/dashboard", async (req, res) => {
     
     // Basic metrics using existing tables only
     const transactionCount = await db.select({ count: count() }).from(transactions);
-    const virtualCardsCount = await db.select({ count: count() }).from(virtualCards);
+    const bcardsCount = await db.select({ count: count() }).from(virtualCards);
     const fundingSourcesCount = await db.select({ count: count() }).from(fundingSources);
 
     // User and merchant counts
@@ -405,8 +405,8 @@ router.get("/dashboard", async (req, res) => {
         balance: 0, // Funding pool tracking to be implemented
       },
       bcardGeneration: {
-        total: virtualCardsCount[0]?.count || 0,
-        successful: virtualCardsCount[0]?.count || 0,
+        total: bcardsCount[0]?.count || 0,
+        successful: bcardsCount[0]?.count || 0,
         successRate: 100
       },
       fundingDeductions: {
@@ -508,6 +508,380 @@ router.get("/funding-deductions", async (req, res) => {
   } catch (error) {
     console.error("Funding deductions fetch error:", error);
     res.status(500).json({ error: "Failed to fetch funding deductions" });
+  }
+});
+
+// 6. KYC VERIFICATION MANAGEMENT & MONITORING
+
+// Get KYC verification dashboard data
+router.get("/kyc/dashboard", async (req, res) => {
+  try {
+    // KYC verification statistics
+    const totalVerifications = await db.select({ count: count() }).from(kycVerifications);
+    
+    const verifiedUsers = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.status, "verified"));
+    
+    const pendingVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.status, "pending"));
+    
+    const failedVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.status, "failed"));
+    
+    const highRiskUsers = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.riskLevel, "high"));
+    
+    // Verification types breakdown
+    const identityVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.verificationType, "identity_document"));
+    
+    const selfieVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.verificationType, "selfie"));
+    
+    const addressVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.verificationType, "address"));
+    
+    // Document types breakdown
+    const passportVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.documentType, "passport"));
+    
+    const driverLicenseVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.documentType, "driving_license"));
+    
+    const idCardVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.documentType, "id_card"));
+    
+    // Recent verification activity (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentVerifications = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(gte(kycVerifications.createdAt, thirtyDaysAgo));
+    
+    // Manual review queue count
+    const manualReviewQueue = await db.select({ count: count() })
+      .from(kycVerifications)
+      .where(eq(kycVerifications.verificationMethod, "manual_review"));
+
+    const successRate = totalVerifications[0]?.count ? 
+      (verifiedUsers[0]?.count || 0) / totalVerifications[0].count * 100 : 0;
+
+    res.json({
+      overview: {
+        totalVerifications: totalVerifications[0]?.count || 0,
+        verifiedUsers: verifiedUsers[0]?.count || 0,
+        pendingVerifications: pendingVerifications[0]?.count || 0,
+        failedVerifications: failedVerifications[0]?.count || 0,
+        successRate: Math.round(successRate * 100) / 100,
+        highRiskUsers: highRiskUsers[0]?.count || 0,
+        manualReviewQueue: manualReviewQueue[0]?.count || 0,
+        recentActivity: recentVerifications[0]?.count || 0
+      },
+      verificationTypes: {
+        identityDocument: identityVerifications[0]?.count || 0,
+        selfie: selfieVerifications[0]?.count || 0,
+        address: addressVerifications[0]?.count || 0
+      },
+      documentTypes: {
+        passport: passportVerifications[0]?.count || 0,
+        drivingLicense: driverLicenseVerifications[0]?.count || 0,
+        idCard: idCardVerifications[0]?.count || 0
+      }
+    });
+  } catch (error) {
+    console.error("KYC dashboard fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch KYC dashboard data" });
+  }
+});
+
+// Get all KYC verifications with filtering and pagination
+router.get("/kyc/verifications", async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, verificationType, riskLevel, search } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
+    
+    let query = db.select({
+      id: kycVerifications.id,
+      userId: kycVerifications.userId,
+      verificationType: kycVerifications.verificationType,
+      status: kycVerifications.status,
+      documentType: kycVerifications.documentType,
+      documentCountry: kycVerifications.documentCountry,
+      riskLevel: kycVerifications.riskLevel,
+      riskScore: kycVerifications.riskScore,
+      errorCode: kycVerifications.errorCode,
+      errorMessage: kycVerifications.errorMessage,
+      reviewedBy: kycVerifications.reviewedBy,
+      submittedAt: kycVerifications.submittedAt,
+      verifiedAt: kycVerifications.verifiedAt,
+      user: {
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      }
+    })
+    .from(kycVerifications)
+    .leftJoin(users, eq(kycVerifications.userId, users.id))
+    .orderBy(desc(kycVerifications.createdAt))
+    .limit(Number(limit))
+    .offset(offset);
+
+    // Apply filters
+    let conditions = [];
+    if (status) {
+      conditions.push(eq(kycVerifications.status, status as string));
+    }
+    if (verificationType) {
+      conditions.push(eq(kycVerifications.verificationType, verificationType as string));
+    }
+    if (riskLevel) {
+      conditions.push(eq(kycVerifications.riskLevel, riskLevel as string));
+    }
+    if (search) {
+      conditions.push(like(users.email, `%${search}%`));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const verifications = await query;
+    
+    // Get total count for pagination
+    const totalQuery = db.select({ count: count() }).from(kycVerifications);
+    if (conditions.length > 0) {
+      totalQuery.leftJoin(users, eq(kycVerifications.userId, users.id));
+      totalQuery.where(and(...conditions));
+    }
+    const totalCount = await totalQuery;
+
+    res.json({
+      verifications,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: totalCount[0]?.count || 0,
+        totalPages: Math.ceil((totalCount[0]?.count || 0) / Number(limit))
+      }
+    });
+  } catch (error) {
+    console.error("KYC verifications fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch KYC verifications" });
+  }
+});
+
+// Get specific KYC verification details
+router.get("/kyc/verifications/:verificationId", async (req, res) => {
+  try {
+    const { verificationId } = req.params;
+    
+    const [verification] = await db.select({
+      id: kycVerifications.id,
+      userId: kycVerifications.userId,
+      verificationType: kycVerifications.verificationType,
+      status: kycVerifications.status,
+      stripeVerificationSessionId: kycVerifications.stripeVerificationSessionId,
+      stripeVerificationReportId: kycVerifications.stripeVerificationReportId,
+      documentType: kycVerifications.documentType,
+      documentCountry: kycVerifications.documentCountry,
+      documentNumber: kycVerifications.documentNumber,
+      documentUrls: kycVerifications.documentUrls,
+      verificationMethod: kycVerifications.verificationMethod,
+      riskScore: kycVerifications.riskScore,
+      riskLevel: kycVerifications.riskLevel,
+      extractedData: kycVerifications.extractedData,
+      verificationChecks: kycVerifications.verificationChecks,
+      errorCode: kycVerifications.errorCode,
+      errorMessage: kycVerifications.errorMessage,
+      notes: kycVerifications.notes,
+      adminNotes: kycVerifications.adminNotes,
+      reviewedBy: kycVerifications.reviewedBy,
+      reviewedAt: kycVerifications.reviewedAt,
+      submittedAt: kycVerifications.submittedAt,
+      verifiedAt: kycVerifications.verifiedAt,
+      metadata: kycVerifications.metadata,
+      createdAt: kycVerifications.createdAt,
+      updatedAt: kycVerifications.updatedAt,
+      user: {
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        phoneNumber: users.phoneNumber,
+        country: users.country,
+      }
+    })
+    .from(kycVerifications)
+    .leftJoin(users, eq(kycVerifications.userId, users.id))
+    .where(eq(kycVerifications.id, Number(verificationId)));
+
+    if (!verification) {
+      return res.status(404).json({ error: "KYC verification not found" });
+    }
+
+    res.json({ verification });
+  } catch (error) {
+    console.error("KYC verification detail fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch KYC verification details" });
+  }
+});
+
+// Update KYC verification status (manual review)
+router.patch("/kyc/verifications/:verificationId", async (req, res) => {
+  try {
+    const { verificationId } = req.params;
+    const { status, adminNotes, riskLevel } = req.body;
+    
+    // Get admin info from token
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    const decoded = jwt.verify(token!, JWT_SECRET) as any;
+    const adminUsername = decoded.username;
+
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (status) {
+      updateData.status = status;
+      if (status === "verified") {
+        updateData.verifiedAt = new Date();
+      }
+      updateData.reviewedBy = adminUsername;
+      updateData.reviewedAt = new Date();
+    }
+
+    if (adminNotes) {
+      updateData.adminNotes = adminNotes;
+    }
+
+    if (riskLevel) {
+      updateData.riskLevel = riskLevel;
+    }
+
+    await db.update(kycVerifications)
+      .set(updateData)
+      .where(eq(kycVerifications.id, Number(verificationId)));
+
+    res.json({ 
+      success: true, 
+      message: "KYC verification updated successfully" 
+    });
+  } catch (error) {
+    console.error("KYC verification update error:", error);
+    res.status(500).json({ error: "Failed to update KYC verification" });
+  }
+});
+
+// Bulk approve/reject KYC verifications
+router.post("/kyc/verifications/bulk-action", async (req, res) => {
+  try {
+    const { verificationIds, action, adminNotes } = req.body;
+    
+    // Get admin info from token
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    const decoded = jwt.verify(token!, JWT_SECRET) as any;
+    const adminUsername = decoded.username;
+
+    const updateData: any = {
+      status: action, // 'verified' or 'failed'
+      reviewedBy: adminUsername,
+      reviewedAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    if (action === "verified") {
+      updateData.verifiedAt = new Date();
+    }
+
+    if (adminNotes) {
+      updateData.adminNotes = adminNotes;
+    }
+
+    // Update all specified verifications
+    for (const verificationId of verificationIds) {
+      await db.update(kycVerifications)
+        .set(updateData)
+        .where(eq(kycVerifications.id, Number(verificationId)));
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Successfully ${action} ${verificationIds.length} verifications`,
+      updatedCount: verificationIds.length
+    });
+  } catch (error) {
+    console.error("KYC bulk action error:", error);
+    res.status(500).json({ error: "Failed to perform bulk action" });
+  }
+});
+
+// Get KYC compliance report
+router.get("/kyc/compliance-report", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    // Time-based filtering
+    let dateConditions = [];
+    if (startDate) {
+      dateConditions.push(gte(kycVerifications.createdAt, new Date(startDate as string)));
+    }
+    if (endDate) {
+      dateConditions.push(lte(kycVerifications.createdAt, new Date(endDate as string)));
+    }
+
+    // Compliance metrics
+    const complianceData = await db.select({
+      status: kycVerifications.status,
+      verificationType: kycVerifications.verificationType,
+      documentType: kycVerifications.documentType,
+      documentCountry: kycVerifications.documentCountry,
+      riskLevel: kycVerifications.riskLevel,
+      verificationMethod: kycVerifications.verificationMethod,
+      count: count()
+    })
+    .from(kycVerifications)
+    .where(dateConditions.length > 0 ? and(...dateConditions) : undefined)
+    .groupBy(
+      kycVerifications.status,
+      kycVerifications.verificationType,
+      kycVerifications.documentType,
+      kycVerifications.documentCountry,
+      kycVerifications.riskLevel,
+      kycVerifications.verificationMethod
+    );
+
+    // Average processing times
+    const processingTimes = await db.select({
+      avgProcessingHours: sql`AVG(EXTRACT(EPOCH FROM (verified_at - submitted_at))/3600)`.as('avgProcessingHours')
+    })
+    .from(kycVerifications)
+    .where(and(
+      eq(kycVerifications.status, "verified"),
+      ...(dateConditions.length > 0 ? dateConditions : [])
+    ));
+
+    res.json({
+      complianceData,
+      averageProcessingHours: processingTimes[0]?.avgProcessingHours || 0,
+      reportPeriod: {
+        startDate: startDate || null,
+        endDate: endDate || null,
+        generatedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error("KYC compliance report error:", error);
+    res.status(500).json({ error: "Failed to generate compliance report" });
   }
 });
 

@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useLocation } from "wouter";
+import AdminKYC from "./admin-kyc";
 import { 
   Users, 
   Building2, 
@@ -420,20 +421,7 @@ export default function AdminPanel() {
 
           {/* Placeholder tabs */}
           <TabsContent value="kyc">
-            <Card>
-              <CardHeader>
-                <CardTitle>KYC Management</CardTitle>
-                <CardDescription>Manage KYC verifications and compliance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    KYC management interface coming soon
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
+            <AdminKYC />
           </TabsContent>
 
           <TabsContent value="vendors">

@@ -150,19 +150,32 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// KYC verification data
+// KYC verification data - Enhanced for Stripe Identity compliance
 export const kycVerifications = pgTable("kyc_verifications", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  status: varchar("status").default("pending"), // pending, approved, rejected, under_review
-  documentType: varchar("document_type"), // passport, drivers_license, national_id
+  verificationType: varchar("verification_type").notNull(), // identity_document, selfie, address, business_verification
+  status: varchar("status").default("pending"), // pending, requires_input, processing, verified, failed, canceled
+  stripeVerificationSessionId: varchar("stripe_verification_session_id"),
+  stripeVerificationReportId: varchar("stripe_verification_report_id"),
+  documentType: varchar("document_type"), // passport, driving_license, id_card
+  documentCountry: varchar("document_country"), // Issuing country of document
   documentNumber: varchar("document_number"),
   documentUrls: text("document_urls").array(), // Array of uploaded document URLs
-  verificationMethod: varchar("verification_method"), // manual, automated, third_party
-  riskScore: integer("risk_score"), // 0-100 risk assessment
+  verificationMethod: varchar("verification_method"), // stripe_identity, manual_review, automated
+  riskScore: integer("risk_score"), // 0-100 risk assessment from Stripe
+  riskLevel: varchar("risk_level"), // low, medium, high
+  extractedData: jsonb("extracted_data"), // firstName, lastName, dob, address from document
+  verificationChecks: jsonb("verification_checks"), // document_front, document_back, selfie results
+  errorCode: varchar("error_code"), // document_expired, document_unreadable, selfie_failed
+  errorMessage: text("error_message"),
   notes: text("notes"),
+  adminNotes: text("admin_notes"), // Admin review notes
   reviewedBy: varchar("reviewed_by"), // Admin user ID who reviewed
   reviewedAt: timestamp("reviewed_at"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  verifiedAt: timestamp("verified_at"),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
