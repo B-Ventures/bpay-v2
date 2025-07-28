@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/components/providers/demo-mode-provider";
 import AddFundingModal from "@/components/modals/add-funding-modal";
+import { KycVerificationIncentive } from "@/components/KycVerificationIncentive";
 import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
 
 export default function FundingSources() {
@@ -50,8 +51,19 @@ export default function FundingSources() {
     enabled: !!user && !isDemoMode,
   });
 
+  const { data: subscriptionData } = useQuery({
+    queryKey: ["/api/subscription/benefits"],
+    enabled: !!user && !isDemoMode,
+  });
+
   // Use demo data when in demo mode, real data when in normal mode (and authenticated)
   const fundingSources = isDemoMode ? demoFundingSources : (user ? realFundingSources : []);
+  
+  // Type guard for subscription data
+  const hasValidSubscriptionData = subscriptionData && 
+    typeof subscriptionData === 'object' &&
+    'benefits' in subscriptionData &&
+    'currentTier' in subscriptionData;
 
   const getBrandColor = (brand: string) => {
     switch (brand?.toLowerCase()) {
@@ -81,7 +93,21 @@ export default function FundingSources() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
+      {/* KYC Verification Incentive - only for authenticated users */}
+      {!isDemoMode && hasValidSubscriptionData && (
+        <KycVerificationIncentive
+          isKycVerified={(subscriptionData as any).benefits.isKycVerified}
+          currentTier={(subscriptionData as any).currentTier}
+          currentFundingSourceCount={Array.isArray(fundingSources) ? fundingSources.length : 0}
+          maxFundingSources={(subscriptionData as any).benefits.maxFundingSources === -1 ? 999 : (subscriptionData as any).benefits.maxFundingSources - ((subscriptionData as any).benefits.isKycVerified ? 1 : 0)}
+          onStartVerification={() => {
+            // This would normally navigate to KYC verification flow
+            console.log("Start KYC verification");
+          }}
+        />
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -96,7 +122,7 @@ export default function FundingSources() {
           </div>
         </CardHeader>
         <CardContent>
-          {fundingSources.length === 0 ? (
+          {!Array.isArray(fundingSources) || fundingSources.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Plus className="h-8 w-8" />
@@ -112,7 +138,7 @@ export default function FundingSources() {
             </div>
           ) : (
             <div className="grid gap-6">
-              {fundingSources.map((source: any) => (
+              {Array.isArray(fundingSources) && fundingSources.map((source: any) => (
                 <div key={source.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">

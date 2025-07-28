@@ -192,6 +192,8 @@ export default function AddFundingModal({ isOpen, onClose }: AddFundingModalProp
             currentCount={fundingSources.length}
             maxAllowed={subscriptionData.benefits.maxFundingSources}
             nameVerificationRequired={subscriptionData.benefits.nameVerificationRequired}
+            isKycVerified={subscriptionData.benefits.isKycVerified}
+            features={subscriptionData.benefits.features}
           />
         )}
         

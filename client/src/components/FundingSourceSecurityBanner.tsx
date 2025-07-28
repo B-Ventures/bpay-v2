@@ -7,13 +7,17 @@ interface FundingSourceSecurityBannerProps {
   currentCount: number;
   maxAllowed: number | string;
   nameVerificationRequired: boolean;
+  isKycVerified?: boolean;
+  features?: string[];
 }
 
 export function FundingSourceSecurityBanner({ 
   currentTier, 
   currentCount, 
   maxAllowed, 
-  nameVerificationRequired 
+  nameVerificationRequired,
+  isKycVerified = false,
+  features = []
 }: FundingSourceSecurityBannerProps) {
   const isAtLimit = typeof maxAllowed === 'number' && currentCount >= maxAllowed;
   const tierDisplayName = currentTier.charAt(0).toUpperCase() + currentTier.slice(1);
@@ -41,6 +45,29 @@ export function FundingSourceSecurityBanner({
           </div>
         </AlertDescription>
       </Alert>
+
+      {/* KYC Verification Status & Benefits */}
+      {currentTier === 'free' && (
+        <Alert className={isKycVerified ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950" : "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950"}>
+          <Shield className={`h-4 w-4 ${isKycVerified ? 'text-green-600' : 'text-amber-600'}`} />
+          <AlertDescription className={isKycVerified ? "text-green-800 dark:text-green-200" : "text-amber-800 dark:text-amber-200"}>
+            {isKycVerified ? (
+              <div>
+                <strong>✓ ID Verified Account:</strong> You have +1 bonus funding source and can add sources in any name.
+              </div>
+            ) : (
+              <div>
+                <strong>🔒 Complete ID Verification:</strong> Unlock +1 funding source and add sources in other names.
+                <div className="mt-1">
+                  <Badge variant="outline" className="text-amber-700 border-amber-300 text-xs">
+                    Verification encourages account security
+                  </Badge>
+                </div>
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Security Requirements */}
       {nameVerificationRequired && (

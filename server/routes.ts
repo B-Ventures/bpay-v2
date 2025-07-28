@@ -474,12 +474,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const tier = user.subscriptionTier || 'free';
-      const benefits = getSubscriptionBenefits(tier);
+      const benefits = await getSubscriptionBenefits(userId, tier);
       
       res.json({
         currentTier: tier,
         benefits,
-        upgradeAvailable: tier === 'free'
+        upgradeAvailable: tier === 'free' && !benefits.isKycVerified
       });
     } catch (error) {
       console.error("Error fetching subscription benefits:", error);

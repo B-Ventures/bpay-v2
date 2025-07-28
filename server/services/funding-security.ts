@@ -1,20 +1,26 @@
 import { db } from "../db";
-import { users, fundingSources } from "@shared/schema";
-import { eq, count } from "drizzle-orm";
+import { users, fundingSources, kycVerifications } from "@shared/schema";
+import { eq, count, desc } from "drizzle-orm";
 
 // Subscription tier limits
 export const SUBSCRIPTION_LIMITS = {
   free: {
     maxFundingSources: 2,
-    requiresNameVerification: true
+    requiresNameVerification: true,
+    kycBonusSources: 1, // +1 source after KYC verification
+    kycRelaxesNameCheck: true // KYC allows non-matching names
   },
   pro: {
     maxFundingSources: 5,
-    requiresNameVerification: true
+    requiresNameVerification: false,
+    kycBonusSources: 0, // No additional bonus for paid tiers
+    kycRelaxesNameCheck: false
   },
   premium: {
     maxFundingSources: -1, // unlimited
-    requiresNameVerification: false
+    requiresNameVerification: false,
+    kycBonusSources: 0,
+    kycRelaxesNameCheck: false
   }
 } as const;
 
@@ -61,13 +67,13 @@ export function checkNameSimilarity(userName: string, cardholderName: string): b
   return matchingParts >= Math.min(2, Math.min(userParts.length, cardParts.length));
 }
 
-// Validate funding source creation based on user's subscription tier
+// Validate funding source creation based on user's subscription tier and KYC status
 export async function validateFundingSourceCreation(
   userId: string, 
   cardholderName: string
 ): Promise<{ isValid: boolean; error?: string }> {
   try {
-    // Get user details including subscription tier
+    // Get user details including subscription tier and KYC status
     const [user] = await db.select()
       .from(users)
       .where(eq(users.id, userId));
@@ -75,6 +81,15 @@ export async function validateFundingSourceCreation(
     if (!user) {
       return { isValid: false, error: "User not found" };
     }
+
+    // Check KYC verification status
+    const [kycRecord] = await db.select()
+      .from(kycVerifications)
+      .where(eq(kycVerifications.userId, userId))
+      .orderBy(desc(kycVerifications.createdAt))
+      .limit(1);
+
+    const isKycVerified = kycRecord?.status === 'approved';
 
     // Get current funding sources count
     const [{ count: currentCount }] = await db.select({ count: count() })
@@ -84,17 +99,38 @@ export async function validateFundingSourceCreation(
     const tier = user.subscriptionTier as keyof typeof SUBSCRIPTION_LIMITS || 'free';
     const limits = SUBSCRIPTION_LIMITS[tier];
 
-    // Check funding source limit
-    if (limits.maxFundingSources !== -1 && currentCount >= limits.maxFundingSources) {
+    // Calculate effective limits with KYC bonuses
+    const effectiveMaxSources = limits.maxFundingSources === -1 ? -1 : 
+      limits.maxFundingSources + (isKycVerified ? limits.kycBonusSources : 0);
+    
+    const effectiveNameCheck = limits.requiresNameVerification && 
+      !(isKycVerified && limits.kycRelaxesNameCheck);
+
+    // Check funding source limit (including KYC bonus)
+    if (effectiveMaxSources !== -1 && currentCount >= effectiveMaxSources) {
       const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
-      return { 
-        isValid: false, 
-        error: `${tierName} tier allows maximum ${limits.maxFundingSources} funding sources. Upgrade your plan to add more.` 
-      };
+      const baseMessage = `${tierName} tier allows maximum ${limits.maxFundingSources} funding sources.`;
+      
+      if (isKycVerified && limits.kycBonusSources > 0) {
+        return { 
+          isValid: false, 
+          error: `${baseMessage} You've already used your +${limits.kycBonusSources} ID verification bonus. Upgrade your plan to add more.` 
+        };
+      } else if (!isKycVerified && limits.kycBonusSources > 0) {
+        return { 
+          isValid: false, 
+          error: `${baseMessage} Complete ID verification to unlock ${limits.kycBonusSources} additional funding source, or upgrade your plan.` 
+        };
+      } else {
+        return { 
+          isValid: false, 
+          error: `${baseMessage} Upgrade your plan to add more.` 
+        };
+      }
     }
 
-    // Check name verification requirement
-    if (limits.requiresNameVerification) {
+    // Check name verification requirement (relaxed for KYC-verified users)
+    if (effectiveNameCheck) {
       const userFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
       
       if (!userFullName) {
@@ -107,7 +143,7 @@ export async function validateFundingSourceCreation(
       if (!checkNameSimilarity(userFullName, cardholderName)) {
         return { 
           isValid: false, 
-          error: "The name on the funding source must match your account name for security purposes." 
+          error: "The name on the funding source must match your account name for security purposes. Complete ID verification to add sources in other names." 
         };
       }
     }
@@ -120,13 +156,56 @@ export async function validateFundingSourceCreation(
   }
 }
 
-// Get subscription tier benefits for display
-export function getSubscriptionBenefits(tier: string) {
+// Get subscription tier benefits for display (including KYC bonuses)
+export async function getSubscriptionBenefits(userId: string, tier: string) {
   const limits = SUBSCRIPTION_LIMITS[tier as keyof typeof SUBSCRIPTION_LIMITS] || SUBSCRIPTION_LIMITS.free;
   
+  // Check KYC verification status if user ID provided
+  let isKycVerified = false;
+  if (userId) {
+    try {
+      const [kycRecord] = await db.select()
+        .from(kycVerifications)
+        .where(eq(kycVerifications.userId, userId))
+        .orderBy(desc(kycVerifications.createdAt))
+        .limit(1);
+      
+      isKycVerified = kycRecord?.status === 'approved';
+    } catch (error) {
+      console.error("Error checking KYC status:", error);
+    }
+  }
+
+  // Calculate effective limits with KYC bonuses
+  const effectiveMaxSources = limits.maxFundingSources === -1 ? -1 : 
+    limits.maxFundingSources + (isKycVerified ? limits.kycBonusSources : 0);
+  
+  const effectiveNameCheck = limits.requiresNameVerification && 
+    !(isKycVerified && limits.kycRelaxesNameCheck);
+
+  const features = [
+    `${effectiveMaxSources === -1 ? 'Unlimited' : effectiveMaxSources} funding sources`,
+    effectiveNameCheck ? 'Name verification required' : 'Any cardholder name allowed'
+  ];
+
+  // Add KYC-specific features for free tier
+  if (tier === 'free') {
+    if (isKycVerified) {
+      features.push('✓ ID Verification Bonus: +1 funding source');
+      if (limits.kycRelaxesNameCheck) {
+        features.push('✓ Can add sources in other names');
+      }
+    } else if (limits.kycBonusSources > 0) {
+      features.push(`🔒 Complete ID verification for +${limits.kycBonusSources} funding source`);
+      features.push('🔒 Add sources in other names after verification');
+    }
+  }
+  
   return {
-    maxFundingSources: limits.maxFundingSources === -1 ? 'Unlimited' : limits.maxFundingSources.toString(),
-    nameVerificationRequired: limits.requiresNameVerification,
-    tierDisplayName: tier.charAt(0).toUpperCase() + tier.slice(1)
+    maxFundingSources: effectiveMaxSources,
+    nameVerificationRequired: effectiveNameCheck,
+    tierDisplayName: tier.charAt(0).toUpperCase() + tier.slice(1),
+    isKycVerified,
+    features
   };
 }
