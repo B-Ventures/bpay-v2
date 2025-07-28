@@ -130,15 +130,15 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 ## Recent Changes
 
 ### January 28, 2025
-- **Complete Language Switching Mechanism**: Implemented comprehensive multi-language support with smooth switching functionality across entire platform
+- **Complete Language Switching Mechanism**: Implemented comprehensive multi-language support with intuitive single-toggle functionality across entire platform
   - **LanguageContext Provider**: Created global language state management with localStorage persistence and URL-based detection
-  - **LanguageSwitcher Component**: Built dropdown language selector with flag icons and smart routing between English/Arabic pages
+  - **LanguageSwitcher Component**: Built clean single-button language toggle that shows only the opposite language option (English page shows Arabic toggle, Arabic page shows English toggle)
   - **Translation Hook System**: Developed useTranslations hook that dynamically serves English or Arabic content based on language context
   - **Intelligent Navigation**: Language switcher automatically navigates between corresponding pages (/ ↔ /ar, /investors ↔ /investors-ar)
   - **RTL/LTR Support**: Automatic document direction and language attribute updates for proper Arabic text rendering
   - **Cross-Page Integration**: Language switcher integrated into all landing pages, investor pages, and mobile menus
   - **Persistent Language Settings**: User language preference saved to localStorage and maintained across browser sessions
-  - **Mobile-First Design**: Language switcher works seamlessly in both desktop navigation and mobile menus
+  - **Clean UX Design**: Simple toggle approach that prompts users to switch to the alternate language rather than showing a dropdown
 
 ### January 28, 2025
 - **Complete Fee-Based Subscription Model**: Successfully transitioned from volume-limited tiers to fee-based subscription incentives across entire platform

@@ -1,12 +1,6 @@
 import React from 'react';
 import { Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocation } from 'wouter';
 
@@ -14,7 +8,8 @@ export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
   const [location, setLocation] = useLocation();
 
-  const handleLanguageChange = (newLang: 'en' | 'ar') => {
+  const handleLanguageToggle = () => {
+    const newLang = language === 'en' ? 'ar' : 'en';
     setLanguage(newLang);
     
     // Navigate to appropriate route based on current path
@@ -30,30 +25,22 @@ export function LanguageSwitcher() {
     }
   };
 
+  // Show the opposite language of what's currently active
+  const targetLanguage = language === 'en' ? 'ar' : 'en';
+  const displayText = targetLanguage === 'ar' ? 'العربية' : 'English';
+  const flagEmoji = targetLanguage === 'ar' ? '🇸🇦' : '🇺🇸';
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
-          <Globe className="h-4 w-4" />
-          <span className="text-sm font-medium">
-            {language === 'ar' ? 'العربية' : 'English'}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-32">
-        <DropdownMenuItem 
-          onClick={() => handleLanguageChange('en')}
-          className={language === 'en' ? 'bg-gray-100' : ''}
-        >
-          🇺🇸 English
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => handleLanguageChange('ar')}
-          className={language === 'ar' ? 'bg-gray-100' : ''}
-        >
-          🇸🇦 العربية
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button 
+      variant="ghost" 
+      size="sm" 
+      className="gap-2 text-gray-600 hover:text-[hsl(249,83%,65%)]"
+      onClick={handleLanguageToggle}
+    >
+      <Globe className="h-4 w-4" />
+      <span className="text-sm font-medium">
+        {flagEmoji} {displayText}
+      </span>
+    </Button>
   );
 }
