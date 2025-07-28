@@ -78,9 +78,9 @@ export default function AdminKYC() {
   const [selectedVerification, setSelectedVerification] = useState<KYCVerification | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [filters, setFilters] = useState({
-    status: "",
-    verificationType: "",
-    riskLevel: "",
+    status: "all",
+    verificationType: "all",
+    riskLevel: "all",
     search: ""
   });
   const [page, setPage] = useState(1);
@@ -90,12 +90,35 @@ export default function AdminKYC() {
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
     queryKey: ["/api/admin/kyc/dashboard"],
     enabled: !!token,
+    queryFn: async () => {
+      const response = await fetch("/api/admin/kyc/dashboard", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch dashboard data');
+      return response.json();
+    }
   });
 
   // Fetch KYC verifications with filters
   const { data: verificationsData, isLoading: isVerificationsLoading } = useQuery({
     queryKey: ["/api/admin/kyc/verifications", page, filters],
     enabled: !!token,
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "20",
+        ...(filters.status !== "all" && { status: filters.status }),
+        ...(filters.verificationType !== "all" && { verificationType: filters.verificationType }),
+        ...(filters.riskLevel !== "all" && { riskLevel: filters.riskLevel }),
+        ...(filters.search && { search: filters.search })
+      });
+      
+      const response = await fetch(`/api/admin/kyc/verifications?${params}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch verifications');
+      return response.json();
+    }
   });
 
   // Update verification mutation
@@ -345,7 +368,7 @@ export default function AdminKYC() {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="processing">Processing</SelectItem>
                   <SelectItem value="verified">Verified</SelectItem>
@@ -361,7 +384,7 @@ export default function AdminKYC() {
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
                   <SelectItem value="identity_document">Identity Document</SelectItem>
                   <SelectItem value="selfie">Selfie</SelectItem>
                   <SelectItem value="address">Address</SelectItem>
@@ -377,7 +400,7 @@ export default function AdminKYC() {
                   <SelectValue placeholder="All risk levels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All risk levels</SelectItem>
+                  <SelectItem value="all">All risk levels</SelectItem>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
