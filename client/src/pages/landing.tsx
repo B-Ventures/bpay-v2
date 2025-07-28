@@ -301,11 +301,7 @@ export default function Landing() {
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">2 funding sources</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">+1 bonus source with ID verification</span>
+                    <span className="text-gray-700">3 funding sources</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
@@ -338,7 +334,7 @@ export default function Landing() {
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold mb-2">Pro</h3>
                   <div className="text-4xl font-bold mb-2">$9.99<span className="text-lg font-normal">/month</span></div>
-                  <p className="text-blue-100">For growing businesses</p>
+                  <p className="text-blue-100">For advanced users</p>
                 </div>
                 
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6">
@@ -351,7 +347,11 @@ export default function Landing() {
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center">
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
-                    <span>5 funding sources</span>
+                    <span>Everything in Starter</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
+                    <span>Unlimited funding sources</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
@@ -386,7 +386,7 @@ export default function Landing() {
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
                   <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">$19.99<span className="text-lg font-normal">/month</span></div>
-                  <p className="text-gray-600">For advanced users</p>
+                  <p className="text-gray-600">For high ticket users</p>
                 </div>
                 
                 <div className="bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(186,94%,44%)] rounded-lg p-4 mb-6">
@@ -399,19 +399,15 @@ export default function Landing() {
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">Unlimited funding sources</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
                     <span className="text-gray-700">Everything in Pro</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">API access</span>
+                    <span className="text-gray-700">API Integration</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">Custom integrations</span>
+                    <span className="text-gray-700">Custom Addon</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
@@ -431,7 +427,7 @@ export default function Landing() {
           
           <div className="text-center mt-16">
             <p className="text-gray-600 mb-4">
-              Need custom volume pricing? Processing over $50K monthly?
+              Need custom volume pricing? Processing over $100K monthly?
             </p>
             <Button className="border-2 border-[hsl(249,83%,65%)] text-[hsl(249,83%,65%)] bg-transparent hover:bg-[hsl(249,83%,65%)] hover:text-white px-8 py-3 transition-all duration-300">
               Contact Enterprise Sales
