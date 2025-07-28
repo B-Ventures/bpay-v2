@@ -5,25 +5,25 @@ import { eq, count, desc } from "drizzle-orm";
 // Subscription tier limits
 export const SUBSCRIPTION_LIMITS = {
   free: {
-    maxFundingSources: 3,
+    maxFundingSources: 2,
     requiresNameVerification: true,
     kycBonusSources: 1, // +1 source after KYC verification
     kycRelaxesNameCheck: true, // KYC allows non-matching names
     feePercentage: 2.9 // Standard fee rate
   },
   pro: {
-    maxFundingSources: -1, // unlimited
+    maxFundingSources: 5,
     requiresNameVerification: false,
     kycBonusSources: 0, // No additional bonus for paid tiers
     kycRelaxesNameCheck: false,
-    feePercentage: 1.9 // 1.9% fees for pro tier
+    feePercentage: 2.9 // Same fees as free - value is in enhanced features
   },
   premium: {
     maxFundingSources: -1, // unlimited
     requiresNameVerification: false,
     kycBonusSources: 0,
     kycRelaxesNameCheck: false,
-    feePercentage: 0.9 // 0.9% fees for premium tier
+    feePercentage: 1.9 // Premium gets reduced transaction fees
   }
 } as const;
 

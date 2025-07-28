@@ -131,13 +131,13 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 
 ### January 28, 2025
 - **Subscription-Based Fee Model Implementation**: Transitioned from volume-limited tiers to fee-based subscription incentives
-  - **Free Tier**: 2.9% fees, 3 funding sources + KYC verification bonus (1 additional source)
-  - **PRO Tier**: 1.9% fees, unlimited funding sources and enhanced features  
-  - **Premium Tier**: 0.9% fees (lowest rate), unlimited funding sources and advanced features
+  - **Free Tier**: 2.9% fees, 2 funding sources + KYC verification bonus (1 additional source)
+  - **PRO Tier**: 2.9% fees (same as free), enhanced features and 5 funding sources  
+  - **Premium Tier**: 1.9% fees (reduced rate), unlimited funding sources and advanced features
   - **Centralized Fee Calculator**: Built fee calculation service that dynamically determines rates based on subscription tier
-  - **Revenue Optimization**: Completely removed volume limits to focus purely on subscription upgrades for lower transaction fees
+  - **Revenue Optimization**: Removed volume limits to focus on subscription upgrades for lower transaction fees
   - **Enhanced ID Verification Incentives**: KYC-verified free users unlock additional funding source and relaxed name matching
-  - **Dynamic Fee Display**: Updated all UI components to show subscription-specific fee rates (2.9%/1.9%/0.9%) instead of hardcoded fees
+  - **Dynamic Fee Display**: Updated all UI components to show subscription-specific fee rates instead of hardcoded 2.9%
   - **Subscription Benefits Enhancement**: Added tier-specific features like priority support, analytics, and white-label options
 
 ### January 27, 2025
