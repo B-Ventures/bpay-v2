@@ -301,11 +301,11 @@ export default function Landing() {
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">Up to $1,000/month volume</span>
+                    <span className="text-gray-700">2 funding sources</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">3 funding sources</span>
+                    <span className="text-gray-700">+1 bonus source with ID verification</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
@@ -343,7 +343,7 @@ export default function Landing() {
                 
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">1.9%</div>
+                    <div className="text-2xl font-bold">2.9%</div>
                     <div className="text-sm text-blue-100">per transaction</div>
                   </div>
                 </div>
@@ -351,11 +351,11 @@ export default function Landing() {
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center">
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
-                    <span>$1K - $10K monthly volume</span>
+                    <span>5 funding sources</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
-                    <span>Unlimited funding sources</span>
+                    <span>Enhanced payment processing</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-[hsl(186,94%,44%)] h-5 w-5 mr-3 flex-shrink-0" />
@@ -386,12 +386,12 @@ export default function Landing() {
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
                   <div className="text-4xl font-bold text-[hsl(249,83%,65%)] mb-2">$19.99<span className="text-lg font-normal">/month</span></div>
-                  <p className="text-gray-600">For high-volume users</p>
+                  <p className="text-gray-600">For advanced users</p>
                 </div>
                 
                 <div className="bg-gradient-to-r from-[hsl(249,83%,65%)] to-[hsl(186,94%,44%)] rounded-lg p-4 mb-6">
                   <div className="text-center text-white">
-                    <div className="text-2xl font-bold">0.9%</div>
+                    <div className="text-2xl font-bold">1.9%</div>
                     <div className="text-sm">per transaction</div>
                   </div>
                 </div>
@@ -399,7 +399,7 @@ export default function Landing() {
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">$10K+ monthly volume</span>
+                    <span className="text-gray-700">Unlimited funding sources</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="text-green-500 h-5 w-5 mr-3 flex-shrink-0" />
