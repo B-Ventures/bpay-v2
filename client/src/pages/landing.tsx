@@ -1,9 +1,11 @@
-import { CreditCard, Plus, PieChart, ShoppingCart, Globe, Shield, Smartphone, Store, Check, TrendingUp, Users, Award, Star, ArrowRight, Zap, Target, DollarSign, Clock, Building2 } from "lucide-react";
+import { CreditCard, Plus, PieChart, ShoppingCart, Globe, Shield, Smartphone, Store, Check, TrendingUp, Users, Award, Star, ArrowRight, Zap, Target, DollarSign, Clock, Building2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export default function Landing() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -33,18 +35,79 @@ export default function Landing() {
             <div className="md:hidden">
               <button 
                 className="p-2 rounded-md text-gray-600 hover:text-[hsl(249,83%,65%)] hover:bg-gray-100 transition-colors"
-                onClick={() => alert('Mobile menu coming soon!')}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 <span className="sr-only">Open main menu</span>
-                <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                  <div className="w-full h-0.5 bg-current"></div>
-                  <div className="w-full h-0.5 bg-current"></div>
-                  <div className="w-full h-0.5 bg-current"></div>
-                </div>
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <div className="w-6 h-6 flex flex-col justify-center space-y-1">
+                    <div className="w-full h-0.5 bg-current"></div>
+                    <div className="w-full h-0.5 bg-current"></div>
+                    <div className="w-full h-0.5 bg-current"></div>
+                  </div>
+                )}
               </button>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-100">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <a 
+                href="#how-it-works" 
+                className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                How It Works
+              </a>
+              <a 
+                href="/investors" 
+                className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                For Investors
+              </a>
+              <a 
+                href="#features" 
+                className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Features
+              </a>
+              <a 
+                href="/addon-checkout-demo" 
+                className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Merchant Demo
+              </a>
+              <div className="pt-4 border-t border-gray-200 mt-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    window.location.href = "/api/login";
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="w-full text-left justify-start text-gray-600 mb-2"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => {
+                    window.location.href = "/api/login";
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] shadow-lg"
+                >
+                  Start Free
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
