@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { DemoModeProvider } from "@/components/providers/demo-mode-provider";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
+import LandingAr from "@/pages/landing-ar";
 import Home from "@/pages/home";
 
 import MerchantPortal from "@/pages/merchant-portal";
@@ -17,6 +18,7 @@ import PaymentDemo from "@/pages/payment-demo";
 import AddonCheckoutDemo from "@/pages/addon-checkout-demo";
 import BannerCheckoutDemo from "@/pages/banner-checkout-demo";
 import Investors from "@/pages/investors";
+import InvestorsAr from "@/pages/investors-ar";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,6 +30,8 @@ function Router() {
       <Route path="/addon-checkout-demo" component={AddonCheckoutDemo} />
       <Route path="/banner-checkout-demo" component={BannerCheckoutDemo} />
       <Route path="/investors" component={Investors} />
+      <Route path="/investors-ar" component={InvestorsAr} />
+      <Route path="/ar" component={LandingAr} />
       <Route path="/admin-login" component={AdminLogin} />
       
       {isLoading || !isAuthenticated ? (
