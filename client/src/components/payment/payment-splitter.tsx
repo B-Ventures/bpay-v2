@@ -66,6 +66,12 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
     enabled: !!user,
   });
 
+  // Fetch subscription data for fee calculation
+  const { data: subscriptionData } = useQuery({
+    queryKey: ["/api/subscription/benefits"],
+    enabled: !!user,
+  });
+
   // Use demo data when in demo mode, real data when in normal mode (and authenticated)
   const activeFundingSources = isDemoMode ? demoFundingSources : (user ? fundingSources : []);
   const activeVirtualCards = isDemoMode ? demoVirtualCards : (user ? virtualCards : []);
@@ -229,7 +235,9 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
     });
   };
 
-  const feeAmount = amount * 0.029; // 2.9% bpay fee
+  // Calculate fees based on subscription tier
+  const feePercentage = subscriptionData?.benefits?.feePercentage || 2.9;
+  const feeAmount = amount * (feePercentage / 100);
   const totalAmount = amount + feeAmount;
   const isValidSplit = splitMode === 'percentage' ? 
     getTotalPercentage() === 100 : 
@@ -256,7 +264,7 @@ export default function PaymentSplitter({ amount, merchant, onPaymentSuccess }: 
               <span className="font-medium">${amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>bpay Fee (2.9%):</span>
+              <span>bpay Fee ({feePercentage}%):</span>
               <span className="font-medium">${feeAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between border-t pt-3">

@@ -8,19 +8,22 @@ export const SUBSCRIPTION_LIMITS = {
     maxFundingSources: 2,
     requiresNameVerification: true,
     kycBonusSources: 1, // +1 source after KYC verification
-    kycRelaxesNameCheck: true // KYC allows non-matching names
+    kycRelaxesNameCheck: true, // KYC allows non-matching names
+    feePercentage: 2.9 // Standard fee rate
   },
   pro: {
     maxFundingSources: 5,
     requiresNameVerification: false,
     kycBonusSources: 0, // No additional bonus for paid tiers
-    kycRelaxesNameCheck: false
+    kycRelaxesNameCheck: false,
+    feePercentage: 2.9 // Same fees as free - value is in enhanced features
   },
   premium: {
     maxFundingSources: -1, // unlimited
     requiresNameVerification: false,
     kycBonusSources: 0,
-    kycRelaxesNameCheck: false
+    kycRelaxesNameCheck: false,
+    feePercentage: 1.9 // Premium gets reduced transaction fees
   }
 } as const;
 
@@ -185,7 +188,8 @@ export async function getSubscriptionBenefits(userId: string, tier: string) {
 
   const features = [
     `${effectiveMaxSources === -1 ? 'Unlimited' : effectiveMaxSources} funding sources`,
-    effectiveNameCheck ? 'Name verification required' : 'Any cardholder name allowed'
+    effectiveNameCheck ? 'Name verification required' : 'Any cardholder name allowed',
+    `${limits.feePercentage}% transaction fees`
   ];
 
   // Add KYC-specific features for free tier
@@ -200,12 +204,23 @@ export async function getSubscriptionBenefits(userId: string, tier: string) {
       features.push('🔒 Add sources in other names after verification');
     }
   }
+
+  // Add tier-specific value propositions
+  if (tier === 'pro') {
+    features.push('Enhanced payment processing features');
+    features.push('Priority customer support');
+  } else if (tier === 'premium') {
+    features.push('Lowest transaction fees available');
+    features.push('Advanced analytics and reporting');
+    features.push('White-label integration options');
+  }
   
   return {
     maxFundingSources: effectiveMaxSources,
     nameVerificationRequired: effectiveNameCheck,
     tierDisplayName: tier.charAt(0).toUpperCase() + tier.slice(1),
     isKycVerified,
-    features
+    features,
+    feePercentage: limits.feePercentage
   };
 }

@@ -35,9 +35,15 @@ export default function CreateBcardModal({ isOpen, onClose }: CreateBcardModalPr
   // Auto-populate cardholder name from user registration
   const cardholderName = user ? `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() || 'bpay User' : 'bpay User';
   
-  // Calculate fees (2.9% bpay fee)
-  const BPAY_FEE_RATE = 0.029;
-  const fees = bcardAmount * BPAY_FEE_RATE;
+  // Fetch subscription data for fee calculation
+  const { data: subscriptionData } = useQuery({
+    queryKey: ["/api/subscription/benefits"],
+    enabled: isOpen,
+  });
+
+  // Calculate fees based on subscription tier
+  const feePercentage = subscriptionData?.benefits?.feePercentage || 2.9; // Default to 2.9%
+  const fees = bcardAmount * (feePercentage / 100);
   const totalAmountWithFees = bcardAmount + fees;
 
   // Fetch funding sources

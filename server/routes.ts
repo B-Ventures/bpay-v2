@@ -10,6 +10,7 @@ import { stripeIssuingService } from "./services/stripe-issuing";
 import { registerMerchantAPI } from "./merchant-api";
 import adminApi from "./admin-api";
 import { validateFundingSourceCreation, getSubscriptionBenefits } from "./services/funding-security";
+import { FeeCalculator } from "./services/fee-calculator";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -660,12 +661,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const totalAmount = parseFloat(amount);
-      const feePercentage = 0.029; // 2.9% bpay fee
-      const totalFees = totalAmount * feePercentage;
-      const totalWithFees = totalAmount + totalFees;
+      
+      // Calculate fees based on user's subscription tier
+      const userTier = user.subscriptionTier || 'free';
+      const feeCalculation = FeeCalculator.calculateFees(totalAmount, userTier);
+      const totalWithFees = feeCalculation.totalAmount;
 
       // Step 1: CRITICAL - Validate funding source balances BEFORE any processing
-      console.log(`Validating funding sources for total amount: $${totalWithFees.toFixed(2)} (including $${totalFees.toFixed(2)} fees)`);
+      console.log(`Validating funding sources for total amount: $${totalWithFees.toFixed(2)} (including $${feeCalculation.feeAmount.toFixed(2)} fees at ${feeCalculation.feePercentage}%)`);
       
       const balanceValidationResults = [];
       let totalAvailableBalance = 0;
@@ -806,7 +809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: totalAmount.toFixed(2),
         splits: JSON.stringify(splits),
         status: 'completed',
-        fees: totalFees.toFixed(2),
+        fees: feeCalculation.feeAmount.toFixed(2),
         stripePaymentIntentId: captureResults[0]?.id,
       });
 
@@ -825,7 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           readyForMerchantUse: true
         },
         totalAmount,
-        totalFees,
+        totalFees: feeCalculation.feeAmount,
         message: "Funds captured and virtual card loaded successfully"
       });
     } catch (error) {
@@ -846,9 +849,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const totalAmount = parseFloat(amount);
-      const feePercentage = 0.029; // 2.9% bpay fee
-      const totalFees = totalAmount * feePercentage;
-      const totalWithFees = totalAmount + totalFees;
+      
+      // Calculate fees based on user's subscription tier
+      const userTier = user.subscriptionTier || 'free';
+      const feeCalculation = FeeCalculator.calculateFees(totalAmount, userTier);
+      const totalWithFees = feeCalculation.totalAmount;
 
       // Mock payment intent for demo
       const paymentIntent = {
@@ -860,7 +865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: {
           merchant,
           originalAmount: amount,
-          fees: totalFees.toFixed(2),
+          fees: feeCalculation.feeAmount.toFixed(2),
           splits: JSON.stringify(splits)
         }
       };
@@ -868,7 +873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         clientSecret: paymentIntent.client_secret,
         totalAmount,
-        totalFees,
+        totalFees: feeCalculation.feeAmount,
         totalWithFees
       });
     } catch (error) {
