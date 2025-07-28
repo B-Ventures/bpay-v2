@@ -1,9 +1,11 @@
-import { TrendingUp, Users, Building2, Target, Shield, Clock, ArrowRight, Zap } from "lucide-react";
+import { TrendingUp, Users, Building2, Target, Shield, Clock, ArrowRight, Zap, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export default function Investors() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -14,7 +16,6 @@ export default function Investors() {
               <div className="flex-shrink-0 flex items-center">
                 <Zap className="text-[hsl(249,83%,65%)] h-8 w-8 mr-2" />
                 <span className="text-2xl font-bold text-gray-900">bpay</span>
-                <Badge variant="secondary" className="ml-3 text-xs bg-green-100 text-green-700">Live Platform</Badge>
               </div>
             </div>
             <div className="hidden md:block">
@@ -29,8 +30,68 @@ export default function Investors() {
                 </Button>
               </div>
             </div>
+            <div className="md:hidden">
+              <button 
+                className="p-2 rounded-md text-gray-600 hover:text-[hsl(249,83%,65%)] hover:bg-gray-100 transition-colors"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <span className="sr-only">Open main menu</span>
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <div className="w-6 h-6 flex flex-col justify-center space-y-1">
+                    <div className="w-full h-0.5 bg-current"></div>
+                    <div className="w-full h-0.5 bg-current"></div>
+                    <div className="w-full h-0.5 bg-current"></div>
+                  </div>
+                )}
+              </button>
+            </div>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-100">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <a 
+                href="/" 
+                className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </a>
+              <a 
+                href="/addon-checkout-demo" 
+                className="text-gray-600 hover:text-[hsl(249,83%,65%)] block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Merchant Demo
+              </a>
+              <div className="pt-4 border-t border-gray-200 mt-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    window.location.href = "/api/login";
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="w-full text-left justify-start text-gray-600 mb-2"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => {
+                    window.location.href = "/api/login";
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="w-full bg-[hsl(249,83%,65%)] hover:bg-[hsl(249,83%,60%)] shadow-lg"
+                >
+                  Start Free
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
