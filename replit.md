@@ -130,6 +130,15 @@ Payment processing: Implement Stripe Issuing for card generation in production m
 ## Recent Changes
 
 ### January 28, 2025
+- **Google OIDC Authentication Migration**: Successfully migrated authentication system from Replit Auth to Google OIDC for AWS deployment compatibility
+  - **Standard OIDC Variables**: Updated to use industry-standard environment variables (OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_ISSUER)
+  - **Google Cloud Integration**: Configured authentication to work with Google Cloud Console OAuth 2.0 credentials
+  - **Flexible Deployment**: Authentication now works with any domain (AWS, custom domains) instead of Replit-specific domains
+  - **Production Security**: Added proper HTTPS and cookie security settings for production environments
+  - **User Claims Mapping**: Updated user profile creation to use Google's standard claim names (given_name, family_name, picture)
+  - **Documentation**: Created comprehensive setup guide (GOOGLE_AUTH_SETUP.md) for AWS deployment configuration
+  - **Backward Compatibility**: Maintained all existing user functionality while switching authentication providers
+
 - **Complete Language Switching Mechanism**: Implemented comprehensive multi-language support with intuitive single-toggle functionality across entire platform
   - **LanguageContext Provider**: Created global language state management with localStorage persistence and URL-based detection
   - **LanguageSwitcher Component**: Built clean single-button language toggle that shows only the opposite language option (English page shows Arabic toggle, Arabic page shows English toggle)

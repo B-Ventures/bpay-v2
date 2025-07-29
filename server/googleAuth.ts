@@ -8,7 +8,7 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-// Check for required OIDC environment variables
+// Check for required Google OIDC environment variables
 if (!process.env.OIDC_CLIENT_ID) {
   throw new Error("Environment variable OIDC_CLIENT_ID not provided");
 }
@@ -16,15 +16,15 @@ if (!process.env.OIDC_CLIENT_SECRET) {
   throw new Error("Environment variable OIDC_CLIENT_SECRET not provided");
 }
 
-// Default to Google OIDC if issuer not specified
-const OIDC_ISSUER = process.env.OIDC_ISSUER || "https://accounts.google.com";
+// Google OIDC configuration
+const GOOGLE_ISSUER = "https://accounts.google.com";
 const OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID;
 const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
-      new URL(OIDC_ISSUER),
+      new URL(GOOGLE_ISSUER),
       OIDC_CLIENT_ID,
       OIDC_CLIENT_SECRET
     );
@@ -48,7 +48,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
     },
   });
@@ -70,9 +70,9 @@ async function upsertUser(
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
-    firstName: claims["given_name"] || claims["first_name"],
-    lastName: claims["family_name"] || claims["last_name"],
-    profileImageUrl: claims["picture"] || claims["profile_image_url"],
+    firstName: claims["given_name"],
+    lastName: claims["family_name"],
+    profileImageUrl: claims["picture"],
   });
 }
 
@@ -95,12 +95,12 @@ export async function setupAuth(app: Express) {
   };
 
   // Get the base URL for callback
-  const baseUrl = process.env.BASE_URL || process.env.OIDC_REDIRECT_URI || "http://localhost:5000";
+  const baseUrl = process.env.BASE_URL || "http://localhost:5000";
   const callbackURL = `${baseUrl}/api/callback`;
 
   const strategy = new Strategy(
     {
-      name: "oidc",
+      name: "google-oidc",
       config,
       scope: "openid email profile",
       callbackURL: callbackURL,
@@ -113,14 +113,14 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate("oidc", {
+    passport.authenticate("google-oidc", {
       prompt: "select_account",
       scope: ["openid", "email", "profile"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate("oidc", {
+    passport.authenticate("google-oidc", {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);
@@ -128,20 +128,10 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
-      // For Google, we can redirect to their logout URL or just redirect to home
       const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.hostname}`;
       
-      try {
-        // Try to build proper logout URL if supported by provider
-        const logoutUrl = client.buildEndSessionUrl(config, {
-          client_id: OIDC_CLIENT_ID,
-          post_logout_redirect_uri: baseUrl,
-        }).href;
-        res.redirect(logoutUrl);
-      } catch (error) {
-        // Fallback to simple redirect if provider doesn't support end session
-        res.redirect(baseUrl);
-      }
+      // Google doesn't require special logout URL, just clear session and redirect
+      res.redirect(baseUrl);
     });
   });
 }

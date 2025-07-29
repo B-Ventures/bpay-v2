@@ -76,6 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             userId,
             name: "Chase Freedom",
+            cardholderName: "Chase Freedom",
             type: "credit_card",
             last4: "1234",
             expiryMonth: 12,
@@ -87,6 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             userId,
             name: "Bank of America",
+            cardholderName: "Bank of America",
             type: "debit_card",
             last4: "5678",
             expiryMonth: 8,
@@ -324,8 +326,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Step 2: Create cardholder for Stripe Issuing
       const cardholder = await stripeIssuingService.createCardholder({
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.firstName ?? undefined,
+        lastName: user.lastName || undefined,
         email: user.email,
         phoneNumber: user.phoneNumber || undefined,
         address: user.address || undefined
