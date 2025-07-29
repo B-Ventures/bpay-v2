@@ -327,10 +327,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Step 2: Create cardholder for Stripe Issuing
       const cardholder = await stripeIssuingService.createCardholder({
         firstName: user.firstName ?? undefined,
-        lastName: user.lastName || undefined,
+        lastName: user.lastName ?? undefined,
         email: user.email,
-        phoneNumber: user.phoneNumber || undefined,
-        address: user.address || undefined
+        phoneNumber: user.phoneNumber ?? undefined,
+        address: user.address ?? undefined
       });
 
       // Step 3: Define spending controls for the bcard
