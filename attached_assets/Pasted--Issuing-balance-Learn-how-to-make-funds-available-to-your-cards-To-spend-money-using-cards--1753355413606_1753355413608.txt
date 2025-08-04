@@ -1,0 +1,737 @@
+# Issuing balance
+
+Learn how to make funds available to your cards.
+
+To spend money using cards, add funds to the Issuing balance on your account. This balance represents funds reserved for Issuing and is safely separated from your earnings, payouts, and funds from other Stripe products.
+
+&nbsp; &nbsp; &nbsp;
+
+#### Push funding
+
+Using the Stripe Dashboard or API, you can access the bank account and routing information you need to push funds from your external bank account. When that account receives funds, they’re immediately available as a [top-up](https://docs.stripe.com/api/topups.md) to your Stripe account’s Issuing balance.
+
+For a given currency, the provided bank account information will be unique and able to receive funds any number of times. Funds always arrive in your Issuing balance in the specified currency. In some cases, your bank might perform currency conversion.
+
+| Region                                                                                                                                                                                                             | Payment Scheme                                                                                                                                                                         | Currency Supported                     | Speed                                                                                  | Maximum amount accepted               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------- |
+| US(Beta)                                                                                                                                                                                                           | *Wire Transfer* (Also called a bank transfer or credit transfer, wire transfers are a method of electronic funds transfers that move money from a payer to a payee) from US banks only | USD                                    | A few minutes to 1 business day                                                        | Varies by bank, usually many millions |
+| *ACH* (Automated Clearing House (ACH) is a US financial network used for electronic payments and money transfers that doesn’t rely on paper checks, credit card networks, wire transfers, or cash) Credit Transfer | USD                                                                                                                                                                                    | Several hours to several business days | Varies by bank, usually less than $25k                                                 |
+| EU                                                                                                                                                                                                                 | SEPA Credit Transfer                                                                                                                                                                   | EUR                                    | About a day                                                                            | €999,999,999.99                       |
+| GB                                                                                                                                                                                                                 | FPS                                                                                                                                                                                    | GBP                                    | About 2 hours during a bank’s business hours, or at the start of the next banking day. | £1 million                            |
+| BACS                                                                                                                                                                                                               | GBP                                                                                                                                                                                    | 2-3 business days                      | £20 million                                                                            |
+
+Select region:
+
+#### United States (beta)
+
+## Access account information for push funding in the Dashboard
+
+To access account information for push funding:
+
+1. Navigate to the [Balances page](https://dashboard.stripe.com/balance/overview.md) in the Dashboard.
+1. Scroll down to the **Issuing balance** heading and click **Add to balance**.
+1. Choose your **Issuing balance** and specify how much to add. Click **Next**.
+1. Select **Wire transfer** from the dropdown, and expand **Show instructions** to see the information you need to send a wire.
+
+To send a wire from your bank, use the routing and account number, along with the beneficiary information.
+
+Wires from banks outside the US aren’t allowed. Funds received from an international wire are returned to the sender’s bank account, which can take up to 3 business days.
+
+### Request early access 
+
+If you want access to US push funding on your account, contact [Stripe support](https://support.stripe.com.md).
+
+#### Euro area
+
+## Add funds using the Dashboard
+
+Fund your Issuing balance from your [Dashboard](https://dashboard.stripe.com/balance/overview.md) with the **Add to balance** button.
+![Balances overview page in the Dashboard](https://b.stripecdn.com/docs-statics-srv/assets/default-eu-balance.d004b2b9885b392730d9f2ce6f6a2219.png)
+
+Next, choose **Fund your Issuing balance**.
+
+You can add funds from your existing Stripe balance or by initiating a SEPA Credit Transfer.
+![Options to fund your Stripe balance](https://b.stripecdn.com/docs-statics-srv/assets/top-up-issuing-balance-balance-transfer-eu-3.401d2d32d77bb32d0edf9591cb8f65d8.png)
+
+First, select the Issuing balance.
+![Add funds to your Issuing balance through a SEPA Credit Transfer.](https://b.stripecdn.com/docs-statics-srv/assets/top-up-issuing-balance-from-bank-eu-4.82dca301da0a9e785209daa8aa3dbbd6.png)
+
+Add funds to your Issuing balance using a SEPA Credit Transfer.
+
+## Create Funding Instructions with the API
+
+> This API is currently only available for users with an activated account in the Euro area or United Kingdom.
+
+To access account information for pushing funds, use the create Funding Instruction endpoint.
+
+This returns unique instructions for your merchant account or each Connect account to push funds to using a bank transfer.
+
+```bash
+curl https://api.stripe.com/v1/issuing/funding_instructions \
+  -u <<YOUR_SECRET_KEY>>: \
+  -d "funding_type"="bank_transfer" \
+  -d "bank_transfer[type]"="eu_bank_transfer" \
+  -d "currency"="eur"
+```
+
+If the request succeeds, it returns a response similar to the following:
+
+```json
+{
+  "object": "funding_instructions",
+  "bank_transfer": {
+    "country": "DE",
+    "financial_addresses": [
+      {
+        "iban": {
+          "account_holder_name": "Stripe Technology Europe Limited",
+          "bic": "SXPYDEHH",
+          "country": "DE",
+          "iban": "DE00000000000000000001"
+        },
+        "supported_networks": [
+          "sepa"
+        ],
+        "type": "iban"
+      }
+    ],
+    "type": "eu_bank_transfer"
+  },
+  "currency": "eur",
+  "funding_type": "bank_transfer",
+  "livemode": false
+}
+```
+
+## Test pushing funds with the Funding Instructions API
+
+You can simulate a bank transfer to the Issuing balance through the test-only [Fund](https://docs.stripe.com/api/issuing/funding_instructions/fund.md) endpoint. To specify the transfer amount, provide the `amount` parameter with a positive integer in the smallest currency unit. You must also specify the currency that you want the simulated funds to arrive in. For example, to create a test transfer of 1.00 EUR, use `100` as the amount, and `eur` as the currency.
+
+After simulating a bank transfer, the specified amount is then added to the test Issuing balance. View your updated balance from your [Dashboard](https://dashboard.stripe.com/balance/overview#issuing-summary.md) or the [retrieve balance](https://docs.stripe.com/api/balance/balance_retrieve.md) endpoint. Each call to the test endpoint simulates a new bank transfer.
+
+```bash
+curl https://api.stripe.com/v1/test_helpers/issuing/fund_balance \
+  -u <<YOUR_SECRET_KEY>>: \
+  -d "amount"=100 \
+  -d "currency"="eur"
+```
+
+If the request succeeds, it returns a response similar to the following:
+
+```json
+{
+  "object": "funding_instructions",
+  "bank_transfer": {
+    "country": "DE",
+    "financial_addresses": [
+      {
+        "iban": {
+          "account_holder_name": "Stripe Technology Europe Limited",
+          "bic": "SXPYDEHH",
+          "country": "DE",
+          "iban": "DE00000000000000000001"
+        },
+        "supported_networks": [
+          "sepa"
+        ],
+        "type": "iban"
+      }
+    ],
+    "type": "eu_bank_transfer"
+  },
+  "currency": "eur",
+  "funding_type": "bank_transfer",
+  "livemode": false
+}
+```
+
+#### United Kingdom
+
+## Add funds using the Dashboard
+
+Fund your Issuing balance from your [Dashboard](https://dashboard.stripe.com/balance/overview.md) with the **Add to balance** button.
+![Balances overview page in the Dashboard](https://b.stripecdn.com/docs-statics-srv/assets/default-gb-balance.c27a13c29b28a3c3b0f9f02703bc9a35.png)
+
+Next, choose **Fund your Issuing balance**.
+![Options to fund your Stripe balance](https://b.stripecdn.com/docs-statics-srv/assets/top-up-issuing-balance-balance-transfer-gb-2.f6fd9489be7373f3bf9bd534df7f2997.png)
+
+First, select the Issuing balance.
+![Add funds to your Issuing balance through a FPS/BACS Transfer.](https://b.stripecdn.com/docs-statics-srv/assets/top-up-issuing-balance-from-bank-gb-3.8f75e7fa760d43f03e79341e1845fc47.png)
+
+Add funds to your Issuing balance using FPS.
+
+## Create Funding Instructions with the API
+
+> This API is currently only available for users with an activated account in the Euro area or United Kingdom.
+
+To access account information for pushing funds, use the create Funding Instruction endpoint.
+
+This returns unique instructions for your merchant account or each Connect Account to push funds to using a bank transfer.
+
+```bash
+curl https://api.stripe.com/v1/issuing/funding_instructions \
+  -u <<YOUR_SECRET_KEY>>: \
+  -d "funding_type"="bank_transfer" \
+  -d "bank_transfer[type]"="gb_bank_transfer" \
+  -d "currency"="gbp"
+```
+
+```json
+{
+  "object": "funding_instructions",
+  "bank_transfer": {
+    "country": "GB",
+    "financial_addresses": [
+      {
+        "sort_code": {
+          "account_holder_name": "Stripe Payments UK Limited",
+          "sort_code": "000000",
+          "account_number": "00000000"
+        },
+        "supported_networks": [
+          "bacs",
+          "fps"
+        ],
+        "type": "sort_code"
+      }
+    ],
+    "type": "gb_bank_transfer"
+  },
+  "currency": "gbp",
+  "funding_type": "bank_transfer",
+  "livemode": false
+}
+```
+
+## Test pushing funds with the Funding Instructions API
+
+You can simulate a bank transfer to the Issuing balance through the test-only [Fund](https://docs.stripe.com/api/issuing/funding_instructions/fund.md) endpoint. To specify the transfer amount, provide the `amount` parameter with a positive integer in the smallest currency unit. You must also specify the currency that you want the simulated funds to arrive in. For example, to create a test transfer of 1.00 GBP, use `100` as the amount, and `gbp` as the currency.
+
+After simulating a bank transfer, the specified amount is then added to the test Issuing balance. View your updated balance from your [Dashboard](https://dashboard.stripe.com/balance/overview#issuing-summary.md) or the [retrieve balance](https://docs.stripe.com/api/balance/balance_retrieve.md) endpoint. Each call to the test endpoint simulates a new bank transfer.
+
+```bash
+curl https://api.stripe.com/v1/test_helpers/issuing/fund_balance \
+  -u <<YOUR_SECRET_KEY>>: \
+  -d "amount"=100 \
+  -d "currency"="gbp"
+```
+
+If the request succeeds, it returns a response similar to the following:
+
+```json
+{
+  "object": "funding_instructions",
+  "bank_transfer": {
+    "country": "GB",
+    "financial_addresses": [
+      {
+        "sort_code": {
+          "account_holder_name": "Stripe Payments UK Limited",
+          "sort_code": "000000",
+          "account_number": "00000000"
+        },
+        "supported_networks": [
+          "bacs",
+          "fps"
+        ],
+        "type": "sort_code"
+      }
+    ],
+    "type": "gb_bank_transfer"
+  },
+  "currency": "gbp",
+  "funding_type": "bank_transfer",
+  "livemode": false
+}
+```
+
+#### Funding from Stripe Balance
+
+# Transferring funds from your Stripe balance
+
+You can add funds to your Issuing balance by transferring funds from your main Stripe balance. Transfers from your Stripe balance are instant and available 24x7 in the US, or take one business day in the UK and euro area countries. This allows you to quickly and easily utilize earned funds from Stripe Payments for spend with Stripe Issuing.
+
+You can only move an amount up to your available Stripe balance. Funds won’t be available in your Issuing balance while the transfer is pending.
+
+## Transferring balances in the Dashboard
+
+1. Click **Add to balance button** within the Issuing balance section of your [Dashboard](https://dashboard.stripe.com/balance/overview#issuing-summary.md) balances page.
+![](https://b.stripecdn.com/docs-statics-srv/assets/issuing-balance-2.e12d5bc02b6dc2e157e016e06ed07877.png)
+
+1. Choose to add funds to your **Issuing balance**.
+
+You can initiate a transfer to your Issuing balance directly from your Stripe balance. If you have any Stripe balance available to use, you’ll see the amounts in the drop down when initiating a balance transfer.
+
+The amounts available to use in the Stripe balance for transfers are broken down by [source_type](https://docs.stripe.com/api/balance/balance_object#balance_object-available-source_types.md). For example, if your Stripe balance contains $10.00 where the `source_type` is `card` and $20.00 where the `source_type` is `bank_account`, you can choose either **From card balance ($10.00)** or **From bank account balance ($20.00)** as your funding source.
+![](https://b.stripecdn.com/docs-statics-srv/assets/balance-transfer-dashboard-1.df0cf7a834e1aa7aa7001d7deb5f9beb.png)
+
+1. Choose how much to add to your Issuing balance after clicking **Add to Balance**.
+![](https://b.stripecdn.com/docs-statics-srv/assets/balance-transfer-dashboard-2.927ab636cc634966798125d9f7bfc035.png)
+
+1. Initiate a transfer from your Stripe Balance by clicking **Add to balance**.
+
+#### Pull funding (US-only)
+
+## Add funds using the Dashboard
+
+Fund your Issuing balance from your [Dashboard](https://dashboard.stripe.com/balance/overview#issuing-summary.md) with the **Add to balance** button.
+![](https://b.stripecdn.com/docs-statics-srv/assets/issuing-balance.ed700bdb0050e7f9f4919f3b36f88c96.png)
+
+Next, choose **Fund your Issuing balance**.
+
+You can add funds to your Issuing balance using a transfer from your existing Stripe balance or with a top-up from your external bank account. Your top-ups can take up to 5 business days to show up in your Issuing balance.
+![](https://b.stripecdn.com/docs-statics-srv/assets/top-up-issuing-balance-balance-transfer-us-2.41b30a7d48d5008d8942d18390d75f60.png)
+
+First, select the Issuing balance.
+![](https://b.stripecdn.com/docs-statics-srv/assets/top-up-issuing-balance-from-bank-us.568363c5c0082e4054ed54b3f7658153.png)
+
+Second, initiate a transfer from your external&nbsp;bank&nbsp;account.
+
+## Top up from the API
+
+To create a new top-up, use the [create top-up](https://docs.stripe.com/api/topups/create.md) endpoint.
+
+#### curl
+
+```bash
+curl https://api.stripe.com/v1/topups \
+  -u <<YOUR_SECRET_KEY>>: \
+  -d destination_balance=issuing \
+  -d amount=2000 \
+  -d currency=usd \
+  -d description="Top-up for Issuing, July 24, 2025" \
+  -d statement_descriptor=Top-up
+```
+
+#### Ruby
+
+```ruby
+
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+Stripe.api_key = '<<YOUR_SECRET_KEY>>'
+
+topup = Stripe::Topup.create({
+  destination_balance: 'issuing',
+  amount: 2000,
+  currency: 'usd',
+  description: "Top-up for Issuing, July 24, 2025",
+  statement_descriptor: 'Top-up',
+})
+```
+
+#### Python
+
+```python
+
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+stripe.api_key = '<<YOUR_SECRET_KEY>>'
+
+topup = stripe.Topup.create(
+    destination_balance='issuing',
+    amount=2000,
+    currency='usd',
+    description="Top-up for Issuing, July 24, 2025",
+    statement_descriptor='Top-up',
+)
+```
+
+#### PHP
+
+```php
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+\Stripe\Stripe::setApiKey('<<YOUR_SECRET_KEY>>');
+
+$topup = \Stripe\Topup::create([
+    'destination_balance' => 'issuing',
+    'amount' => 2000,
+    'currency' => 'usd',
+    'description' => "Top-up for Issuing, July 24, 2025",
+    'statement_descriptor' => 'Top-up',
+]);
+```
+
+#### Java
+
+```java
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+Stripe.apiKey = "<<YOUR_SECRET_KEY>>";
+
+TopupCreateParams params =
+  TopupCreateParams.builder()
+    .putExtraParam("destination_balance", "issuing")
+    .setAmount(2000L)
+    .setCurrency("usd")
+    .setDescription("Top-up for Issuing, July 24, 2025")
+    .setStatementDescriptor("Top-up")
+    .build();
+
+Topup topup = Topup.create(params);
+```
+
+#### Node
+
+```javascript
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+const stripe = require('stripe')('<<YOUR_SECRET_KEY>>');
+
+const topup = await stripe.topups.create({
+  destination_balance: 'issuing',
+  amount: 2000,
+  currency: 'usd',
+  description: "Top-up for Issuing, July 24, 2025",
+  statement_descriptor: 'Top-up',
+});
+```
+
+#### Go
+
+```go
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+stripe.Key = "<<YOUR_SECRET_KEY>>"
+
+params := &stripe.TopupParams{
+  Amount:              stripe.Int64(2000),
+  Currency:            stripe.String(string(stripe.CurrencyUSD)),
+  Description:         stripe.String("Top-up for Issuing, July 24, 2025"),
+  StatementDescriptor: stripe.String("Top-up"),
+}
+params.AddExtra("destination_balance", "issuing")
+
+tu, _ := topup.New(params)
+```
+
+#### .NET
+
+```dotnet
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+StripeConfiguration.ApiKey = "<<YOUR_SECRET_KEY>>";
+
+var options = new TopupCreateOptions
+{
+  Amount = 2000,
+  Currency = "usd",
+  Description = "Top-up for Issuing, July 24, 2025",
+  StatementDescriptor = "Top-up",
+};
+
+options.AddExtraParam("destination_balance", "issuing");
+var service = new TopupService();
+service.Create(options);
+```
+
+Top-ups debit your bank account. Your top-ups can take up to 5 business days to become available. While they’re pending, they won’t be added to your Issuing balance.
+
+## Track your Issuing balance
+
+View your Issuing funds from your [balances dashboard](https://dashboard.stripe.com/balance/overview#issuing-summary.md).
+
+To programmatically track the funds that are available to spend, look at the `issuing` object returned by the [retrieve balance](https://docs.stripe.com/api/balance/balance_retrieve.md) endpoint. This includes your available and pending Issuing funds.
+
+#### curl
+
+```bash
+curl https://api.stripe.com/v1/balance \
+  -u <<YOUR_SECRET_KEY>>:
+```
+
+#### Ruby
+
+```ruby
+
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+Stripe.api_key = '<<YOUR_SECRET_KEY>>'
+
+balances = Stripe::Balance.retrieve()
+```
+
+#### Python
+
+```python
+
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+stripe.api_key = '<<YOUR_SECRET_KEY>>'
+
+balances = stripe.Balance.retrieve()
+```
+
+#### PHP
+
+```php
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+\Stripe\Stripe::setApiKey('<<YOUR_SECRET_KEY>>');
+
+$balances = \Stripe\Balance::retrieve();
+```
+
+#### Java
+
+```java
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+Stripe.apiKey = "<<YOUR_SECRET_KEY>>";
+
+Balance balance = Balance.retrieve();
+```
+
+#### Node
+
+```javascript
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+const stripe = require('stripe')('<<YOUR_SECRET_KEY>>');
+
+const balances = await stripe.balance.retrieve();
+```
+
+#### Go
+
+```go
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+stripe.Key = "<<YOUR_SECRET_KEY>>"
+
+balance, err := balance.Get(nil)
+```
+
+#### .NET
+
+```dotnet
+
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+StripeConfiguration.ApiKey = "<<YOUR_SECRET_KEY>>";
+
+var service = new BalanceService();
+Balance balance = service.Get();
+```
+
+```json
+{
+  "object": "balance",
+  "available": [
+    {
+      "amount": 0,
+      "currency": "usd",
+      "source_types": {
+        "card": 0
+      }
+    }
+  ],
+  "pending": [
+    {
+      "amount": 0,
+      "currency": "usd",
+      "source_types": {
+        "card": 0
+      }
+    }
+  ],"issuing": {
+    "available": [
+      {
+        "amount": 100,
+        "currency": "usd"
+      }
+    ]
+  },
+  "livemode": false
+}
+```
+
+To track your pending Issuing balance, you can use the [list top-ups](https://docs.stripe.com/api/topups/list.md) endpoint and filter on `status` of `pending`.
+
+## Pay out your Issuing balance
+
+To pay out your available Issuing funds, use the [create payout](https://docs.stripe.com/api/payouts/create.md) endpoint and set the `source_balance` of the payout to `issuing`.
+
+```curl
+curl https://api.stripe.com/v1/payouts \
+  -u "<<YOUR_SECRET_KEY>>:" \
+  -d source_balance=issuing \
+  -d amount=100 \
+  -d currency=usd
+```
+
+```cli
+stripe payouts create  \
+  --source-balance=issuing \
+  --amount=100 \
+  --currency=usd
+```
+
+```ruby
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+Stripe.api_key = '<<YOUR_SECRET_KEY>>'
+
+payout = Stripe::Payout.create({
+  source_balance: 'issuing',
+  amount: 100,
+  currency: 'usd',
+})
+```
+
+```ruby
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+client = Stripe::StripeClient.new("<<YOUR_SECRET_KEY>>")
+
+payout = client.v1.payouts.create({
+  source_balance: 'issuing',
+  amount: 100,
+  currency: 'usd',
+})
+```
+
+```python
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+import stripe
+stripe.api_key = "<<YOUR_SECRET_KEY>>"
+
+payout = stripe.Payout.create(
+  source_balance="issuing",
+  amount=100,
+  currency="usd",
+)
+```
+
+```python
+# Set your secret key. Remember to switch to your live secret key in production.
+# See your keys here: https://dashboard.stripe.com/apikeys
+client = StripeClient("<<YOUR_SECRET_KEY>>")
+
+payout = client.payouts.create({
+  "source_balance": "issuing",
+  "amount": 100,
+  "currency": "usd",
+})
+```
+
+```php
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+$stripe = new \Stripe\StripeClient('<<YOUR_SECRET_KEY>>');
+
+$payout = $stripe->payouts->create([
+  'source_balance' => 'issuing',
+  'amount' => 100,
+  'currency' => 'usd',
+]);
+```
+
+```java
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+Stripe.apiKey = "<<YOUR_SECRET_KEY>>";
+
+PayoutCreateParams params =
+  PayoutCreateParams.builder()
+    .setAmount(100L)
+    .setCurrency("usd")
+    .putExtraParam("source_balance", "issuing")
+    .build();
+
+Payout payout = Payout.create(params);
+```
+
+```java
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+StripeClient client = new StripeClient("<<YOUR_SECRET_KEY>>");
+
+PayoutCreateParams params =
+  PayoutCreateParams.builder()
+    .setAmount(100L)
+    .setCurrency("usd")
+    .putExtraParam("source_balance", "issuing")
+    .build();
+
+Payout payout = client.payouts().create(params);
+```
+
+```node
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+const stripe = require('stripe')('<<YOUR_SECRET_KEY>>');
+
+const payout = await stripe.payouts.create({
+  source_balance: 'issuing',
+  amount: 100,
+  currency: 'usd',
+});
+```
+
+```go
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+stripe.Key = "<<YOUR_SECRET_KEY>>"
+
+params := &stripe.PayoutParams{
+  Amount: stripe.Int64(100),
+  Currency: stripe.String(stripe.CurrencyUSD),
+};
+params.AddExtra("source_balance", "issuing")
+result, err := payout.New(params);
+```
+
+```go
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+
+sc := stripe.NewClient("<<YOUR_SECRET_KEY>>");
+params := &stripe.PayoutCreateParams{
+  Amount: stripe.Int64(100),
+  Currency: stripe.String(stripe.CurrencyUSD),
+};
+params.AddExtra("source_balance", "issuing")
+result, err := sc.V1Payouts.Create(context.TODO(), params);
+```
+
+```dotnet
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+StripeConfiguration.ApiKey = "<<YOUR_SECRET_KEY>>";
+
+var options = new PayoutCreateOptions { Amount = 100, Currency = "usd" };
+options.AddExtraParam("source_balance", "issuing");
+var service = new PayoutService();
+Payout payout = service.Create(options);
+```
+
+```dotnet
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+var options = new PayoutCreateOptions { Amount = 100, Currency = "usd" };
+options.AddExtraParam("source_balance", "issuing");
+var client = new StripeClient("<<YOUR_SECRET_KEY>>");
+var service = client.V1.Payouts;
+Payout payout = service.Create(options);
+```
+
+## Enable notifications about your balance
+
+You can enable email notifications to help monitor your Issuing balance from your settings. To configure these notifications:
+
+1. Visit your Balance notifications [settings](https://dashboard.stripe.com/settings/issuing/balance-notifications.md) page.
+1. Choose from two types of alerting thresholds:
+   - Fixed amount: Receive an alert whenever your Issuing balance falls below this amount.
+   - Ratio of balance to rolling spend: Receive an alert whenever the ratio of your Issuing balance to your spend over the previous 24 hours falls below the threshold. For example, if you set your threshold to 80% and your spend over the past day is 100 USD, you receive an alert whenever your balance falls below 80 USD.
